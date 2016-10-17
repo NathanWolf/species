@@ -1,16 +1,61 @@
+// Database data, should not be changed except when refreshing
+var database = null;
+
+// Tracking data
 var currentQuestions = [];
 var currentSpecies = [];
 var currentBug = {};
 
 function start() {
     reset();
-    nextQuestion();
+    fetchData(nextQuestion);
 }
 
 function reset() {
-    currentQuestions = questions.slice();
-    currentSpecies = species.slice();
+    $('#main').empty();
+    database = null;
+    currentQuestions = [];
+    currentSpecies = [];
     currentBug = {};
+}
+
+function fetchData(callback) {
+    $('body').addClass("loading");
+    var jqxhr = $.ajax({
+        url: "data.php",
+        dataType: 'json'
+    })
+    .done(function(data) {
+        if (!data || !data.success) {
+            showRetry("Error loading data from database, sorry!", data.message);
+        } else {
+            setDatabase(data);
+            callback();
+        }
+    })
+    .fail(function() {
+        showRetry("Error loading data from database, sorry!", 'Communications Failure');
+    })
+    .always(function() {
+        $('body').removeClass("loading");
+    });
+}
+
+function showRetry(message, title) {
+    var mainDiv = $('#main');
+    mainDiv.append($('<div class="retryInstructions"/>').text(message).prop('title', title));
+    var retryButton = $('<button type="button"/>').text("Try Again").click(function() {
+        start();
+    });
+    var retryDiv = $('<div class="submitLarge"/>');
+    retryDiv.append(retryButton);
+    mainDiv.append(retryDiv);
+}
+
+function setDatabase(data) {
+    database = data;
+    currentQuestions = database.questions.slice();
+    currentSpecies = database.species.slice();
 }
 
 function nextQuestion() {
@@ -102,7 +147,7 @@ function loadBug(title) {
         }
     })
     .done(function(data) {
-        if (!data.success) {
+        if (!data || !data.success) {
             showAlert("Error loading wiki data - can't save bug, sorry! (" + data.message + ")");
         } else {
             showNewBug(title, data);
@@ -172,7 +217,7 @@ function showNewBug(title, wikiData) {
     var submitButton = $('<button type="button"/>').text("Save My Bug").click(function() {
         saveNewBug();
     });
-    var submitDiv = $('<div class="submit"/>');
+    var submitDiv = $('<div class="submitLarge"/>');
     submitDiv.append(submitButton);
     speciesDiv.append(submitDiv);
     
