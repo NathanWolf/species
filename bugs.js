@@ -54,16 +54,16 @@ function done() {
         speciesDiv.append(nameDiv);
         $('#main').append(speciesDiv);
     } else {
-        first();
+        noMoreQuestions();
     }
 }
 
-function first() {
+function noMoreQuestions() {
     var mainDiv = $('#main');
-    var askDiv = $('<div class="unknown"/>').text("I don't know about any bugs yet!");
+    var askDiv = $('<div class="unknown"/>').text("I've run out of questions! Can you help me learn?");
     mainDiv.append(askDiv);
 
-    var nameDiv = $('<div class="new-name"/>').text("What is the name of this bug?");
+    var nameDiv = $('<div class="newName"/>').text("What is the name of your bug?");
     mainDiv.append(nameDiv);
     
     var nameInput = $('<input id="name" size="50" placeholder="(Type Name Here)"/>');
@@ -134,7 +134,11 @@ function showNewBug(title, wikiData) {
         nameText = nameText + " (" + wikiData['redirect'] + ")";
     }
     var nameDiv = $('<div class="name"/>').text(nameText);
-    var pickDiv = $('<div class="instructions"/>').text("Please choose an image:");
+    speciesDiv.append(nameDiv);
+    
+    var pickImageDiv = $('<div class="instructions"/>').text("Please choose an image:");
+    speciesDiv.append(pickImageDiv);
+    
     var imageContainer = $('<div class="image-picker"/>');
     for (var i = 0; i < wikiData.images.length; i++) {
         var imageData = wikiData.images[i];
@@ -150,20 +154,38 @@ function showNewBug(title, wikiData) {
              }
         }(imageData));
     }
+    speciesDiv.append(imageContainer);
+    
+    var pickQuestionDiv = $('<div class="instructions"/>').text("Please type a question to help me identify this bug:");
+    speciesDiv.append(pickQuestionDiv);
+    var questionDiv = $('<div class="newQuestion"/>');
+    var questionLabel = $('<label for="newQuestion"/>').text("Question:");
+    var questionInput = $('<input id="newQuestion" size="150" placeholder="(Type a Question)"/>');
+    questionDiv.append(questionLabel).append(questionInput);
+    speciesDiv.append(questionDiv);
+    var answerDiv = $('<div class="newAnswer"/>');
+    var answerLabel = $('<label for="newAnswer"/>').text("Answer:");
+    var anserInput = $('<input id="newAnswer" size="50" placeholder="(Type an Answer)"/>');
+    answerDiv.append(answerLabel).append(anserInput);
+    speciesDiv.append(answerDiv);
+    
     var submitButton = $('<button type="button"/>').text("Save My Bug").click(function() {
         saveNewBug();
     });
     var submitDiv = $('<div class="submit"/>');
     submitDiv.append(submitButton);
-    
-    speciesDiv.append(nameDiv);
-    speciesDiv.append(pickDiv);
-    speciesDiv.append(imageContainer);
     speciesDiv.append(submitDiv);
+    
     mainDiv.append(speciesDiv);
 }
 
 function saveNewBug() {
+    var question = $('#newQuestion').val();
+    var answer = $('#newAnswer').val();
+    if (question.length < 2 || answer.length < 1) {
+        showAlert("Please enter a question and answer so I can identify this bug")
+        return;
+    }
     alert("TODO");
 }
 

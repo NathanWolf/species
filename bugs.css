@@ -82,6 +82,41 @@ h1 {
     height: 200px;
 }
 
+.newName {
+    margin-top: 1em;
+}
+
+.newAnswer {
+    position: relative;
+}
+
+.newAnswer label {
+    margin-left: 1em;
+    width: 7em;
+    position: absolute;
+    left: 0;
+}
+
+.newAnswer input {
+    margin-left: 9em;
+}
+
+.newQuestion {
+    margin-top: 0.5em;
+    position: relative;
+}
+
+.newQuestion label {
+    margin-left: 1em;
+    width: 7em;
+    position: absolute;
+    left: 0;
+}
+
+.newQuestion input {
+    margin-left: 9em;
+}
+
 /* Start by setting display:none to make this hidden.
    Then we position it in relation to the viewport window
    with position:fixed. Width, height, top and left speak
