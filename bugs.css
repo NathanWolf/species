@@ -1,6 +1,16 @@
 h1 {
     width: 100%;
     text-align: center;
+    padding: 0.5em;
+    background-color: #DDDDFF;
+}
+
+#main {
+    margin: 2em;
+    padding: 2em;
+    border-radius: 8px;
+    border: 1px solid #222;
+    box-shadow: 10px 10px 5px #888888;
 }
 
 .question {
@@ -19,4 +29,86 @@ h1 {
     font-weight: bold;
     font-size: 2.5em;
     margin-left: 1em;
+}
+
+.unknown {
+    font-size: 1.5em;
+}
+
+.instructions {
+    text-decoration: italic;
+    margin-top: 1em;
+}
+
+.submit {
+    display: inline-block;
+}
+
+.species .submit {
+    display: block;
+    margin-top: 1em;
+}
+
+.species .submit button {
+    display: block;
+    margin-top: 1em;
+    font-size: 2em;
+}
+
+.image-picker .image {
+    width: 200px;
+    height: 200px;
+    display: inline-block;
+    border: 1px solid black;
+    margin: 2px;
+    padding: 8px;
+    cursor:pointer
+}
+
+.image-picker .image:hover {
+    background-color: #DDDDFF;
+}
+
+.image-picker .image.selected {
+    background-color: #DDFFDD;
+}
+
+.image-picker .image.selected:hover {
+    background-color: #DDFFFF;
+}
+
+.image-picker .image img {
+    width: 200px;
+    height: 200px;
+}
+
+/* Start by setting display:none to make this hidden.
+   Then we position it in relation to the viewport window
+   with position:fixed. Width, height, top and left speak
+   for themselves. Background we set to 80% white with
+   our animation centered, and no-repeating */
+.modal {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    height:     100%;
+    width:      100%;
+    background: rgba( 255, 255, 255, .8 )
+    url('http://i.stack.imgur.com/FhHRx.gif')
+    50% 50%
+    no-repeat;
+}
+
+/* When the body has the loading class, we turn
+   the scrollbar off with overflow:hidden */
+body.loading {
+    overflow: hidden;
+}
+
+/* Anytime the body has the loading class, our
+   modal element will be visible */
+body.loading .modal {
+    display: block;
 }

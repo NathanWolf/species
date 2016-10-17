@@ -35,5 +35,6 @@ try {
     <body>
         <h1>Aurora's Bug-O-Pedia</h1>
         <div id="main"></div>
+        <div class="modal"/>
     </body>
 </html>
