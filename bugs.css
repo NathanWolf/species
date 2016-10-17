@@ -1,0 +1,22 @@
+h1 {
+    width: 100%;
+    text-align: center;
+}
+
+.question {
+    font-weight: bold;
+    font-size: 2.5em;
+    margin-bottom: 1em;
+}
+
+.answer {
+    cursor: pointer;
+    margin-left: 2em;
+    font-size: 2em;
+}
+
+.species .name {
+    font-weight: bold;
+    font-size: 2.5em;
+    margin-left: 1em;
+}
