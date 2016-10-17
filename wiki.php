@@ -42,7 +42,9 @@ if ($resolvedImages && isset($resolvedImages['query']) && isset($resolvedImages[
         if (!isset($imagePage['title']) || !isset($imagePage['imageinfo'])) continue;
         $url = null;
         foreach ($imagePage['imageinfo'] as $imageInfo) {
-            $url = $imageInfo['url'];
+            if (isset($imageInfo['url'])) {
+                $url = $imageInfo['url'];
+            }
             break;
         }
         if (!$url) continue;
