@@ -44,6 +44,15 @@ h1 {
     display: inline-block;
 }
 
+.extract {
+    max-height: 4em;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    border: 1px dashed #DDD;
+    margin: 4px;
+    padding: 4px;
+}
+
 .species .submit {
     display: block;
     margin-top: 1em;

@@ -181,6 +181,12 @@ function showNewBug(title, wikiData) {
     var nameDiv = $('<div class="name"/>').text(nameText);
     speciesDiv.append(nameDiv);
     
+    if (wikiData.hasOwnProperty('extract')) {
+        var extractDiv = $('<div class="extract"/>');
+        extractDiv.html(wikiData['extract']);
+        speciesDiv.append(extractDiv);
+    }
+    
     var pickImageDiv = $('<div class="instructions"/>').text("Please choose an image:");
     speciesDiv.append(pickImageDiv);
     

@@ -4,7 +4,7 @@ if (!isset($_REQUEST['title'])) {
 }
 
 $title = $_REQUEST['title'];
-$wikiContent = file_get_contents('http://en.wikipedia.org/w/api.php?action=query&format=json&prop=images&redirects&titles=' . $title);
+$wikiContent = file_get_contents('http://en.wikipedia.org/w/api.php?action=query&format=json&prop=images|extracts&redirects&titles=' . $title);
 if ($wikiContent) $wikiContent = json_decode($wikiContent, true);
 if (!$wikiContent || !isset($wikiContent['query']) || !isset($wikiContent['query']['pages'])) {
     die(json_encode(array('success' => false, 'message' => 'Failed to contact wikipedia')));
@@ -29,6 +29,9 @@ foreach ($pages as $page) {
         foreach ($page['images'] as $image) {
             array_push($images, urlencode($image['title']));
         }
+    }
+    if (isset($page['extract'])) {
+        $response['extract'] = $page['extract'];
     }
 }
 
