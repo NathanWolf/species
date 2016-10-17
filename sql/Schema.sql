@@ -26,7 +26,8 @@ DROP TABLE IF EXISTS `answer`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `answer` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `answer` varchar(255) DEFAULT NULL,
+  `answer` varchar(255) NOT NULL,
+  `created` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `answer_UNIQUE` (`answer`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
@@ -41,8 +42,10 @@ DROP TABLE IF EXISTS `question`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `question` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `question` text NOT NULL,
-  PRIMARY KEY (`id`)
+  `question` varchar(255) NOT NULL,
+  `created` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `question_UNIQUE` (`question`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -57,6 +60,7 @@ CREATE TABLE `question_answer` (
   `species_id` bigint(20) NOT NULL,
   `question_id` bigint(20) NOT NULL,
   `answer_id` bigint(20) NOT NULL,
+  `created` datetime NOT NULL,
   PRIMARY KEY (`species_id`,`question_id`),
   KEY `answer_question_id_idx` (`question_id`),
   KEY `answer_answer_id_idx` (`answer_id`),
@@ -76,6 +80,7 @@ DROP TABLE IF EXISTS `species`;
 CREATE TABLE `species` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
+  `created` datetime NOT NULL,
   `common_name` varchar(255) DEFAULT NULL,
   `image_url` varchar(255) DEFAULT NULL,
   `wiki_url` varchar(255) DEFAULT NULL,
@@ -95,4 +100,4 @@ CREATE TABLE `species` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-10-17  9:06:44
+-- Dump completed on 2016-10-17 16:49:26
