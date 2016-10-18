@@ -30,10 +30,23 @@ h1 {
     background-color: #DDFFDD;
 }
 
+.answer input {
+    font-size: 1em;
+}
+
+.answer button {
+    font-size: 1em;
+    display: none;
+}
+
+.answer:hover button {
+    display: inline-block;
+}
+
 .species .name {
     font-weight: bold;
     font-size: 2.5em;
-    margin-left: 1em;
+    margin-bottom: 0.2em;
 }
 
 .unknown {
@@ -43,6 +56,10 @@ h1 {
 .instructions {
     font-style: italic;
     margin-top: 1em;
+}
+
+.large {
+    font-size: 1.5em;
 }
 
 .submit {
@@ -74,8 +91,6 @@ h1 {
 }
 
 .image-picker .image {
-    width: 200px;
-    height: 200px;
     display: inline-block;
     border: 1px solid black;
     margin: 2px;

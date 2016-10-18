@@ -73,10 +73,14 @@ function setDatabase(data) {
 function nextQuestion() {
     var mainDiv = $('#main');
     mainDiv.empty();
-    if (currentQuestions.length == 0 || currentSpecies.length <= 1) {
-        done();
+    if (currentQuestions.length == 0) {
+        foundMatch();
         return;
     }
+    
+    var instructionsSpan = $('<div class="instructions large"/>').text("Let's answer some questions so I can learn about your bug! I may be able to guess what you have.");
+    mainDiv.append(instructionsSpan);
+    
     var questionIndex = Math.floor(Math.random() * currentQuestions.length);
     var question = currentQuestions[questionIndex];
     currentQuestions.splice(questionIndex, 1);
@@ -90,6 +94,28 @@ function nextQuestion() {
         }(answer.id));
         mainDiv.append(answerSpan);
     }
+    var customAnswerSpan = $('<div class="answer"/>');
+    var answerInput = $('<input id="newAnswer" type="text" size="30" placeholder="(Other Answer)"/>');
+    var answerButton = $('<button type="button"/>').text("Answer").click(function() {
+        newAnswer($('newAnswer').val());
+    });
+    customAnswerSpan.append(answerInput);
+    customAnswerSpan.append(answerButton);
+    mainDiv.append(customAnswerSpan);
+}
+
+function newAnswer(answer) {
+    if (answer.length < 2) {
+        showAlert('Please enter an answer');
+        return;
+    }
+    if (answer.length > 255) {
+        showAlert('That answer is too long, please shorten it');
+        return;
+    }
+    
+    // TODO:
+    alert('WIP!');
 }
 
 function answerQuestion(questionId, answerId) {
@@ -104,8 +130,8 @@ function answerQuestion(questionId, answerId) {
     nextQuestion();
 }
 
-function done() {
-    if (currentSpecies.length == 1) {
+function foundMatch() {
+    if (currentSpecies.length > 0) {
         var species = currentSpecies[0];
         var speciesDiv = $('<div class="species"/>');
         var speciesName = species.name;
@@ -165,6 +191,10 @@ function saveBug() {
     var bugName = nameInput.val();
     if (bugName.length < 2) {
         showAlert("Please enter a bug name");
+        return;
+    }
+    if (bugName.length > 255) {
+        showAlert("Please enter a shorter bug name");
         return;
     }
     loadBug(bugName);
@@ -269,6 +299,14 @@ function saveNewBug(bug) {
     var answer = $('#newAnswer').val();
     if (question.length < 2 || answer.length < 1) {
         showAlert("Please enter a question and answer so I can identify this bug");
+        return;
+    }
+    if (question.length > 255) {
+        showAlert("Please enter a shorter question");
+        return;
+    }
+    if (answer.length > 255) {
+        showAlert("Please enter a shorter answer");
         return;
     }
     $('body').addClass("loading");
