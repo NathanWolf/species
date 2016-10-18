@@ -313,8 +313,16 @@ function showNewBug(title, wikiData) {
     speciesDiv.append(questionDiv);
     var answerDiv = $('<div class="newAnswer"/>');
     var answerLabel = $('<label for="newAnswer"/>').text("Answer:");
-    var anserInput = $('<input id="newAnswer" size="50" placeholder="(Type an Answer)"/>');
-    answerDiv.append(answerLabel).append(anserInput);
+    var answerInput = $('<input id="newAnswer" size="50" placeholder="(Type an Answer)"/>');
+    var allAnswers = [];
+    for (var key in database.answers) {
+        if (database.answers.hasOwnProperty(key)) {
+            allAnswers.push(database.answers[key].answer);
+        }
+    }
+    answerInput.autocomplete({source: allAnswers});
+    
+    answerDiv.append(answerLabel).append(answerInput);
     speciesDiv.append(answerDiv);
     
     var submitButton = $('<button type="button"/>').text("Save My Bug").click(function() {
