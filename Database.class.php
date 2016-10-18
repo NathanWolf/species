@@ -43,7 +43,7 @@ class Database
             $species = $fetchSpecies->fetchAll($this->options);
             $this->species = $this->index($species);
 
-            $fetchQuestionAnswers = $db->prepare('SELECT * FROM question_answer');
+            $fetchQuestionAnswers = $db->prepare('SELECT species_id, question_id, answer_id FROM question_answer');
             $fetchQuestionAnswers->execute();
             $questionAnswers = $fetchQuestionAnswers->fetchAll($this->options);
             
@@ -63,7 +63,7 @@ class Database
     {
         if (is_null($this->answers)) {
             $db = $this->connect();
-            $fetchAnswers = $db->prepare('SELECT * FROM answer');
+            $fetchAnswers = $db->prepare('SELECT id, answer FROM answer');
             $fetchAnswers->execute();
             $answers = $fetchAnswers->fetchAll($this->options);
             $this->answers = $this->index($answers);
@@ -76,12 +76,96 @@ class Database
     {
         if (is_null($this->questions)) {
             $db = $this->connect();
-            $fetchQuestions = $db->prepare('SELECT * FROM question');
+            $fetchQuestions = $db->prepare('SELECT id, question FROM question');
             $fetchQuestions->execute();
             $questions = $fetchQuestions->fetchAll($this->options);
             $this->questions = $this->index($questions);
         }
 
         return $this->questions;
+    }
+    
+    public function getQuestionId($question)
+    {
+        $db = $this->connect();
+        $db->beginTransaction();
+
+        $fetchQuestion = $db->prepare('SELECT id FROM question WHERE question=:question');
+        $fetchQuestion->bindParam('question', $question);
+        $fetchQuestion->execute();
+        $existing = $fetchQuestion->fetch($this->options);
+        if ($existing) {
+            $db->commit();
+            return $existing['id'];
+        }
+
+        $sql = 'INSERT INTO question (question, created) VALUES (:question,UTC_TIMESTAMP())';
+        $addQuestion = $db->prepare($sql);
+        $addQuestion->bindParam('question', $question);
+        $addQuestion->execute();
+        $lastId = $db->lastInsertId();
+        $db->commit();
+
+        return $lastId;
+    }
+
+    public function getAnswerId($answer)
+    {
+        $db = $this->connect();
+        $db->beginTransaction();
+
+        $fetchAnswer = $db->prepare('SELECT id FROM answer WHERE answer=:answer');
+        $fetchAnswer->bindParam('answer', $answer);
+        $fetchAnswer->execute();
+        $existing = $fetchAnswer->fetch($this->options);
+        if ($existing) {
+            $db->commit();
+            return $existing['id'];
+        }
+
+        $sql = 'INSERT INTO answer (answer, created) VALUES (:answer,UTC_TIMESTAMP())';
+        $addAnswer = $db->prepare($sql);
+        $addAnswer->bindParam('answer', $answer);
+        $addAnswer->execute();
+        $lastId = $db->lastInsertId();
+        $db->commit();
+
+        return $lastId;
+    }
+    
+    public function add($name, $commonName, $description, $imageUrl, $wikiUrl, $questions)
+    {
+        $db = $this->connect();
+        $db->beginTransaction();
+
+        $fetchExisting = $db->prepare('SELECT id FROM species WHERE name=:name');
+        $fetchExisting->bindParam('name', $name);
+        $fetchExisting->execute();
+        $existing = $fetchExisting->fetch($this->options);
+        $speciesId = $existing ? $existing['id'] : null;
+        if (!$speciesId) {
+            $sql = 'INSERT INTO species (name, created, common_name, image_url, wiki_url, description) VALUES (:name, UTC_TIMESTAMP(), :common, :image, :wiki, :description)';
+            $addAnswer = $db->prepare($sql);
+            $addAnswer->bindParam('name', $name);
+            $addAnswer->bindParam('common', $commonName);
+            $addAnswer->bindParam('description', $description);
+            $addAnswer->bindParam('image', $imageUrl);
+            $addAnswer->bindParam('wiki', $wikiUrl);
+            $addAnswer->execute();
+            $speciesId = $db->lastInsertId();
+        }
+        
+        foreach ($questions as $questionId => $answerId) {
+            $sql = 'INSERT INTO question_answer (species_id, question_id, answer_id, created) VALUES (:species, :question, :answer, UTC_TIMESTAMP())';
+            $addAnswer = $db->prepare($sql);
+            $addAnswer->bindParam('species', $speciesId);
+            $addAnswer->bindParam('question', $questionId);
+            $addAnswer->bindParam('answer', $answerId);
+            $addAnswer->execute();
+        }
+        
+        $db->commit();
+        
+        return $speciesId;
     }
 }

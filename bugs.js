@@ -4,7 +4,6 @@ var database = null;
 // Tracking data
 var currentQuestions = [];
 var currentSpecies = [];
-var currentBug = {};
 
 function start() {
     reset();
@@ -43,8 +42,21 @@ function fetchData(callback) {
 
 function showRetry(message, title) {
     var mainDiv = $('#main');
+    mainDiv.empty();
     mainDiv.append($('<div class="retryInstructions"/>').text(message).prop('title', title));
     var retryButton = $('<button type="button"/>').text("Try Again").click(function() {
+        start();
+    });
+    var retryDiv = $('<div class="submitLarge"/>');
+    retryDiv.append(retryButton);
+    mainDiv.append(retryDiv);
+}
+
+function showStartOver(message) {
+    var mainDiv = $('#main');
+    mainDiv.empty();
+    mainDiv.append($('<div class="retryInstructions"/>').text(message));
+    var retryButton = $('<button type="button"/>').text("Start Over").click(function() {
         start();
     });
     var retryDiv = $('<div class="submitLarge"/>');
@@ -70,8 +82,8 @@ function nextQuestion() {
     currentQuestions.splice(questionIndex, 1);
     var questionSpan = $('<div class="question"/>').text(question.question);
     mainDiv.append(questionSpan);
-    for (var i = 0; i < answers.length; i++) {
-        var answer = answers[i];
+    for (var i = 0; i < database.answers.length; i++) {
+        var answer = database.answers[i];
         var answerSpan = $('<div class="answer"/>').text(answer.answer);
         answerSpan.click(function(answerId) {
             return function() {answerQuestion(question.id, answerId)};
@@ -134,11 +146,11 @@ function saveBug() {
         showAlert("Please enter a bug name");
         return;
     }
-    $('body').addClass("loading");
     loadBug(bugName);
 }
 
 function loadBug(title) {
+    $('body').addClass("loading");
     var jqxhr = $.ajax({
         url: "wiki.php",
         dataType: 'json',
@@ -162,12 +174,12 @@ function loadBug(title) {
 }
 
 function showNewBug(title, wikiData) {
-    currentBug = {
+    var currentBug = {
         name: title,
-        wikiData: wikiData
+        commonName: null,
+        description: null,
+        image: null
     };
-    currentBug.title = title;
-    currentBug.wikiData = wikiData;
     
     var mainDiv = $('#main');
     mainDiv.empty();
@@ -185,6 +197,7 @@ function showNewBug(title, wikiData) {
         var extractDiv = $('<div class="extract"/>');
         extractDiv.html(wikiData['extract']);
         speciesDiv.append(extractDiv);
+        currentBug.description = wikiData['extract'];
     }
     
     var pickImageDiv = $('<div class="instructions"/>').text("Please choose an image:");
@@ -197,13 +210,13 @@ function showNewBug(title, wikiData) {
         var imageUrl = $('<img src="' + imageData.url + '" title="' + imageData.title +'"/>');
         imageDiv.append(imageUrl);
         imageContainer.append(imageDiv);
-        imageDiv.click(function(imageData) {
+        imageDiv.click(function(url) {
              return function() {
                  $('.image').removeClass('selected');
                  $(this).addClass('selected');
-                 currentBug.image = imageData;
+                 currentBug.image = url;
              }
-        }(imageData));
+        }(imageData.url));
     }
     speciesDiv.append(imageContainer);
     
@@ -221,7 +234,7 @@ function showNewBug(title, wikiData) {
     speciesDiv.append(answerDiv);
     
     var submitButton = $('<button type="button"/>').text("Save My Bug").click(function() {
-        saveNewBug();
+        saveNewBug(currentBug);
     });
     var submitDiv = $('<div class="submitLarge"/>');
     submitDiv.append(submitButton);
@@ -230,14 +243,41 @@ function showNewBug(title, wikiData) {
     mainDiv.append(speciesDiv);
 }
 
-function saveNewBug() {
+function saveNewBug(bug) {
     var question = $('#newQuestion').val();
     var answer = $('#newAnswer').val();
     if (question.length < 2 || answer.length < 1) {
         showAlert("Please enter a question and answer so I can identify this bug")
         return;
     }
-    alert("TODO");
+    $('body').addClass("loading");
+    var jqxhr = $.ajax({
+        url: "add.php",
+        dataType: 'json',
+        type: 'POST',
+        data: {
+            name: bug.name,
+            description: bug.description,
+            common_name: bug.commonName,
+            question: question,
+            answer: answer,
+            image_url: bug.image,
+            wiki_url: 'https://en.wikipedia.org/wiki/' + bug.name
+        }
+    })
+    .done(function(data) {
+        if (!data || !data.success) {
+            showAlert("Error saving bug, sorry! (" + data.message + ")");
+        } else {
+            showStartOver("Thank you, I've learned a little bit about " + bug.name + "!");
+        }
+    })
+    .fail(function() {
+        showAlert("Error saving bug, sorry!");
+    })
+    .always(function() {
+        $('body').removeClass("loading");
+    });
 }
 
 function showAlert(message, icon, title) {
