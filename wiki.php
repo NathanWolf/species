@@ -4,13 +4,52 @@ if (!isset($_REQUEST['title'])) {
 }
 
 $title = $_REQUEST['title'];
-$wikiContent = file_get_contents('http://en.wikipedia.org/w/api.php?action=query&format=json&prop=images|extracts&redirects&titles=' . $title);
-if ($wikiContent) $wikiContent = json_decode($wikiContent, true);
-if (!$wikiContent || !isset($wikiContent['query']) || !isset($wikiContent['query']['pages'])) {
-    die(json_encode(array('success' => false, 'message' => 'Failed to contact wikipedia')));
+// First check for inspect-specific version
+// It would be nice to abstract this, maybe by parsing disambiguation pages, but this ends up with zillions of unrelated results
+// in most cases.
+$wikiKey = $title . '_(insect)';
+$wikiContent = getContent($wikiKey);
+if (!$wikiContent) {
+    // If no insect-specific page is available, re-query for base page
+    $wikiKey = $title;
+    $wikiContent = getContent($wikiKey);
+    if (!$wikiContent) {
+        die(json_encode(array('success' => false, 'message' => 'Failed to contact wikipedia')));
+    }
 }
 
-$response = array('success' => true);
+function getContent($key) {
+    $wikiUrl = 'http://en.wikipedia.org/w/api.php?action=query&format=json&prop=images|extracts&redirects&titles=' . $key;
+    $wikiContent = file_get_contents($wikiUrl);
+    if ($wikiContent) $wikiContent = json_decode($wikiContent, true);
+    if ($wikiContent) {
+        if (!isset($wikiContent['query']) || !isset($wikiContent['query']['pages'])) {
+            $wikiContent = null;
+        } else {
+            $pages = $wikiContent['query']['pages'];
+            foreach ($pages as $page)  {
+                if (isset($page['missing'])) {
+                    $wikiContent = null;
+                    break;
+                }
+            }
+        }
+    }
+    
+    return $wikiContent;
+}
+
+/*
+ "pages": {
+            "-1": {
+                "ns": 0,
+                "title": "Dragonfly (insect)",
+                "missing": ""
+            }
+        }
+ */
+
+$response = array('success' => true, 'wiki' => $wikiKey);
 $images = array();
 $query = $wikiContent['query'];
 

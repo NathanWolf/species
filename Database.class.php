@@ -80,6 +80,18 @@ class Database
             $fetchQuestions->execute();
             $questions = $fetchQuestions->fetchAll($this->options);
             $this->questions = $this->index($questions);
+
+            $questionAnswers = $db->prepare('SELECT question_id, answer_id FROM question_answer group by question_id, answer_id');
+            $questionAnswers->execute();
+            $answers = $questionAnswers->fetchAll($this->options);
+            
+            foreach ($answers as $answer) {
+                $question = &$this->questions[$answer['question_id']];
+                if (!isset($question['answers'])) {
+                    $question['answers'] = array();
+                }
+                array_push($question['answers'], $answer['answer_id']);
+            }
         }
 
         return $this->questions;

@@ -6,16 +6,12 @@ try {
     $response = array('success' => true);
     $db = new Database();
 
-    $response['speciesMap'] = $db->getSpecies();
-    $response['species'] = array_values($response['speciesMap']);
+    $speciesMap = $db->getSpecies();;
+    $response['species'] = array_values($speciesMap);
 
-    $response['questionMap'] = $db->getQuestions();
-    $response['questions'] = array_values($response['questionMap']);
-
-    $answers = $db->getAnswers();
-    ksort($answers);
-    $response['answerMap'] = $answers;
-    $response['answers'] = array_values($response['answerMap']);
+    $questionMap = $db->getQuestions();
+    $response['questions'] = array_values($questionMap);
+    $response['answers'] = $db->getAnswers();
     
     echo json_encode($response, true);
 } catch (Exception $ex) {

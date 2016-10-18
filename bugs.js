@@ -86,25 +86,39 @@ function nextQuestion() {
     currentQuestions.splice(questionIndex, 1);
     var questionSpan = $('<div class="question"/>').text(question.question);
     mainDiv.append(questionSpan);
-    for (var i = 0; i < database.answers.length; i++) {
-        var answer = database.answers[i];
+    var remainingAnswers = jQuery.extend({}, database.answers);
+    for (var i = 0; i < question.answers.length; i++) {
+        var answer = database.answers[question.answers[i]];
+        delete remainingAnswers[question.answers[i]];
         var answerSpan = $('<div class="answer"/>').text(answer.answer);
         answerSpan.click(function(answerId) {
-            return function() {answerQuestion(question.id, answerId)};
+            return function() { answerQuestion(question.id, answerId); };
         }(answer.id));
         mainDiv.append(answerSpan);
     }
+    var customAnswers = [];
+    for (var key in remainingAnswers) {
+        if (remainingAnswers.hasOwnProperty(key)) {
+            customAnswers.push(remainingAnswers[key].answer);
+        }
+    }
     var customAnswerSpan = $('<div class="answer"/>');
-    var answerInput = $('<input id="newAnswer" type="text" size="30" placeholder="(Other Answer)"/>');
+    var answerInput = $('<input id="newAnswer" type="text" size="30" placeholder="(Other Answer)"/>')
+        .autocomplete({source: customAnswers})
+        .keypress(function(e) {
+            if (e.keyCode == $.ui.keyCode.ENTER) {
+                newAnswer(question.id, $('#newAnswer').val());
+            }
+        });
     var answerButton = $('<button type="button"/>').text("Answer").click(function() {
-        newAnswer($('newAnswer').val());
+        newAnswer(question.id, $('#newAnswer').val());
     });
     customAnswerSpan.append(answerInput);
     customAnswerSpan.append(answerButton);
     mainDiv.append(customAnswerSpan);
 }
 
-function newAnswer(answer) {
+function newAnswer(questionId, answer) {
     if (answer.length < 2) {
         showAlert('Please enter an answer');
         return;
@@ -113,9 +127,8 @@ function newAnswer(answer) {
         showAlert('That answer is too long, please shorten it');
         return;
     }
-    
-    // TODO:
-    alert('WIP!');
+
+    noMoreQuestions();
 }
 
 function answerQuestion(questionId, answerId) {
@@ -156,6 +169,21 @@ function foundMatch() {
             var descriptionDiv = $('<div class="extract description"/>').html(species.description);
             speciesDiv.append(descriptionDiv);
         }
+        
+        var askContainer = $('<div class="ask"/>');
+        var askDiv = $('<div class="instructions"/>').text("Is this your bug?");
+        askContainer.append(askDiv);
+
+        var yesButton = $('<button type="button"/>').text("Yes").click(function() {
+            alert("COOL!");
+        });
+        var noButton = $('<button type="button"/>').text("No").click(function() {
+            alert("AWE :(");
+        });
+        askContainer.append(yesButton);
+        askContainer.append(noButton);
+        speciesDiv.append(askContainer);
+        
         $('#main').append(speciesDiv);
     } else {
         noMoreQuestions();
@@ -164,6 +192,7 @@ function foundMatch() {
 
 function noMoreQuestions() {
     var mainDiv = $('#main');
+    mainDiv.empty();
     var askDiv = $('<div class="unknown"/>').text("I've run out of questions! Can you help me learn?");
     mainDiv.append(askDiv);
 
@@ -229,7 +258,8 @@ function showNewBug(title, wikiData) {
         name: title,
         commonName: null,
         description: null,
-        image: null
+        image: null,
+        wikiUrl: null
     };
     
     var mainDiv = $('#main');
@@ -240,6 +270,9 @@ function showNewBug(title, wikiData) {
         currentBug.name = wikiData['redirect'];
         currentBug.commonName = title;
         nameText = nameText + " (" + wikiData['redirect'] + ")";
+    }
+    if (wikiData.hasOwnProperty('wiki')) {
+        currentBug.wikiUrl = 'https://en.wikipedia.org/wiki/' + wikiData['wiki'];
     }
     var nameDiv = $('<div class="name"/>').text(nameText);
     speciesDiv.append(nameDiv);
@@ -321,7 +354,7 @@ function saveNewBug(bug) {
             question: question,
             answer: answer,
             image_url: bug.image,
-            wiki_url: 'https://en.wikipedia.org/wiki/' + bug.name
+            wiki_url: bug.wikiUrl
         }
     })
     .done(function(data) {

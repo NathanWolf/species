@@ -90,6 +90,16 @@ h1 {
     font-size: 2em;
 }
 
+.ask button {
+    margin-top: 1em;
+    font-size: 2em;
+    margin-right: 2em;
+}
+
+.ask .instructions {
+    font-size: 3em;
+}
+
 .image-picker .image {
     display: inline-block;
     border: 1px solid black;
