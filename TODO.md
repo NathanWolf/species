@@ -1,6 +1,5 @@
 # TODO
 
-- Fetch description and maybe sidebar from wikipedia
 - Gracefully handle running out of candidate species, asking new questions
 - Update species question info when found, using missed questions from above
 - Handle case of not found, adding new species including entering questions to differentiate

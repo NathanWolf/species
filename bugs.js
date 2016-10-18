@@ -20,7 +20,7 @@ function reset() {
 
 function fetchData(callback) {
     $('body').addClass("loading");
-    var jqxhr = $.ajax({
+    $.ajax({
         url: "data.php",
         dataType: 'json'
     })
@@ -88,7 +88,7 @@ function nextQuestion() {
         answerSpan.click(function(answerId) {
             return function() {answerQuestion(question.id, answerId)};
         }(answer.id));
-        $('#main').append(answerSpan);
+        mainDiv.append(answerSpan);
     }
 }
 
@@ -106,9 +106,26 @@ function answerQuestion(questionId, answerId) {
 
 function done() {
     if (currentSpecies.length == 1) {
+        var species = currentSpecies[0];
         var speciesDiv = $('<div class="species"/>');
-        var nameDiv = $('<div class="name"/>').text(currentSpecies[0].name);
+        var nameDiv = $('<div class="name"/>').text(species.name);
         speciesDiv.append(nameDiv);
+
+        if (species.wiki_url) {
+            var wikiDiv = $('<div class="wikiLink"/>').append($('<a href="' + species.wiki_url + '" target="_new"/>').text("Full Wikipedia Article"));
+            speciesDiv.append(wikiDiv);
+        }
+        if (species.image_url) {
+            var imageLink = $('<a href="' + species.image_url + '"/>');
+            var imageDiv = $('<div class="thumbnail"/>');
+            imageLink.append($('<img src="' + species.image_url + '"/>'));
+            imageDiv.append(imageLink);
+            speciesDiv.append(imageDiv);
+        }
+        if (species.description) {
+            var descriptionDiv = $('<div class="extract"/>').html(species.description);
+            speciesDiv.append(descriptionDiv);
+        }
         $('#main').append(speciesDiv);
     } else {
         noMoreQuestions();
@@ -129,7 +146,7 @@ function noMoreQuestions() {
         if (e.keyCode == $.ui.keyCode.ENTER) {
             saveBug();
         }
-    })
+    });
     
     var submitButton = $('<button type="button"/>').text("Name My Bug").click(function() {
         saveBug(); 
@@ -151,7 +168,7 @@ function saveBug() {
 
 function loadBug(title) {
     $('body').addClass("loading");
-    var jqxhr = $.ajax({
+    $.ajax({
         url: "wiki.php",
         dataType: 'json',
         data: {
@@ -247,11 +264,11 @@ function saveNewBug(bug) {
     var question = $('#newQuestion').val();
     var answer = $('#newAnswer').val();
     if (question.length < 2 || answer.length < 1) {
-        showAlert("Please enter a question and answer so I can identify this bug")
+        showAlert("Please enter a question and answer so I can identify this bug");
         return;
     }
     $('body').addClass("loading");
-    var jqxhr = $.ajax({
+    $.ajax({
         url: "add.php",
         dataType: 'json',
         type: 'POST',

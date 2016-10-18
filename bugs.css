@@ -41,7 +41,7 @@ h1 {
 }
 
 .instructions {
-    text-decoration: italic;
+    font-style: italic;
     margin-top: 1em;
 }
 
@@ -92,8 +92,13 @@ h1 {
 }
 
 .image-picker .image img {
-    width: 200px;
     height: 200px;
+    width: auto;
+}
+
+.thumbnail img {
+    height: 200px;
+    width: auto;
 }
 
 .newName {
