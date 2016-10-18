@@ -58,6 +58,10 @@ h1 {
     padding: 4px;
 }
 
+.description {
+    max-height: 10em;
+}
+
 .species .submit {
     display: block;
     margin-top: 1em;
