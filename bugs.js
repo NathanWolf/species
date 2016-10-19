@@ -373,8 +373,15 @@ function showNewBug(title, wikiData) {
     if (wikiData.hasOwnProperty('wiki')) {
         currentBug.wikiUrl = 'https://en.wikipedia.org/wiki/' + wikiData['wiki'];
     }
-    var nameDiv = $('<div class="name"/>').text(nameText);
+    var nameDiv = $('<div class="name rename"/>').text(nameText);
     speciesDiv.append(nameDiv);
+
+    var renameButton = $('<button type="button"/>').text("Try a Different Name").click(function() {
+        noMoreQuestions();
+    });
+    var renameDiv = $('<div class="submitLarge rename"/>');
+    renameDiv.append(renameButton);
+    speciesDiv.append(renameDiv);
     
     if (wikiData.hasOwnProperty('extract')) {
         var extractDiv = $('<div class="extract"/>');

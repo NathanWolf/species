@@ -49,6 +49,11 @@ h1 {
     margin-bottom: 0.2em;
 }
 
+.rename {
+    display: inline-block;
+    margin-right: 1.5em;
+}
+
 .unknown {
     font-size: 1.5em;
 }
