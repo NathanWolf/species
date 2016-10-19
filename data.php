@@ -13,8 +13,8 @@ try {
     $response['species_name_map'] = $speciesNameMap;
 
     $questionMap = $db->getQuestions();
-    $response['questions'] = array_values($questionMap);
-    $response['question_map'] = $questionMap;
+    $response['questions'] = $questionMap;
+    $response['question_ids'] = array_keys($questionMap);
     $response['answers'] = $db->getAnswers();
     
     echo json_encode($response, true);

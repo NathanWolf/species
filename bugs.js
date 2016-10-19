@@ -2,7 +2,7 @@
 var database = null;
 
 // Tracking data
-var currentQuestions = [];
+var currentQuestionsIds = [];
 var currentSpeciesIds = [];
 var currentAnswers = {};
 var newAnswers = {};
@@ -16,7 +16,7 @@ function start() {
 function reset() {
     $('#main').empty();
     database = null;
-    currentQuestions = [];
+    currentQuestionsIds = [];
     currentSpeciesIds = [];
     currentBug = {};
     currentAnswers = {};
@@ -71,14 +71,14 @@ function showStartOver(message) {
 
 function setDatabase(data) {
     database = data;
-    currentQuestions = database.questions.slice();
+    currentQuestionsIds = database.question_ids.slice();
     currentSpeciesIds = database.species_ids.slice();
 }
 
 function nextQuestion() {
     var mainDiv = $('#main');
     mainDiv.empty();
-    if (currentQuestions.length == 0 || currentSpeciesIds.length <= 1) {
+    if (currentQuestionsIds.length == 0 || currentSpeciesIds.length <= 1) {
         foundMatch();
         return;
     }
@@ -87,9 +87,9 @@ function nextQuestion() {
         .text("Let's answer some questions so I can learn about your bug! I may be able to guess what you have.");
     mainDiv.append(instructionsSpan);
     
-    var questionIndex = Math.floor(Math.random() * currentQuestions.length);
-    var question = currentQuestions[questionIndex];
-    currentQuestions.splice(questionIndex, 1);
+    var questionIndex = Math.floor(Math.random() * currentQuestionsIds.length);
+    var question = database.questions[currentQuestionsIds[questionIndex]];
+    currentQuestionsIds.splice(questionIndex, 1);
     
     // This should never happen, but you know.
     if (!question.hasOwnProperty('answers')) {
@@ -224,7 +224,7 @@ function foundMatch() {
 function noMoreQuestions() {
     var mainDiv = $('#main');
     mainDiv.empty();
-    var introMessage = database.questions.length == 0 ? "I don't know anything yet! Can you help me learn?" : "I've run out of questions! Can you help me learn?";
+    var introMessage = database.question_ids.length == 0 ? "I don't know anything yet! Can you help me learn?" : "I've run out of questions! Can you help me learn?";
     var askDiv = $('<div class="unknown"/>').text(introMessage);
     mainDiv.append(askDiv);
 
