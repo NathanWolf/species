@@ -7,6 +7,7 @@ var currentSpeciesIds = [];
 var currentAnswers = {};
 var newAnswers = {};
 var currentBug = {};
+var candidateSpeciesIds = [];
 
 function start() {
     reset();
@@ -18,6 +19,7 @@ function reset() {
     database = null;
     currentQuestionsIds = [];
     currentSpeciesIds = [];
+    candidateSpeciesIds = [];
     currentBug = {};
     currentAnswers = {};
     newAnswers = {};
@@ -140,10 +142,19 @@ function newAnswer(questionId, answer) {
         showAlert('That answer is too long, please shorten it');
         return;
     }
+    var oldCandidateIds = candidateSpeciesIds;
+    candidateSpeciesIds = [];
+    for (var candidateIndex = 0; candidateIndex < oldCandidateIds.length; candidateIndex++) {
+        var candidateSpeciesId = oldCandidateIds[candidateIndex];
+        var candidateSpecies = database.species[candidateSpeciesId];
+        if (!candidateSpecies.questions.hasOwnProperty(questionId)) {
+            candidateSpeciesIds.push(candidateSpeciesId);
+        }
+    }
     var oldSpeciesIds = currentSpeciesIds;
     currentSpeciesIds = [];
-    for (var i = 0; i < oldSpeciesIds.length;i++) {
-        var speciesId = oldSpeciesIds[i];
+    for (var speciesIndex = 0; speciesIndex < oldSpeciesIds.length; speciesIndex++) {
+        var speciesId = oldSpeciesIds[speciesIndex];
         var species = database.species[speciesId];
         if (!species.questions.hasOwnProperty(questionId)) {
             currentSpeciesIds.push(speciesId);
@@ -154,12 +165,24 @@ function newAnswer(questionId, answer) {
 }
 
 function answerQuestion(questionId, answerId) {
+    var oldCandidateIds = candidateSpeciesIds;
+    candidateSpeciesIds = [];
+    for (var candidateIndex = 0; candidateIndex < oldCandidateIds.length; candidateIndex++) {
+        var candidateSpeciesId = oldCandidateIds[candidateIndex];
+        var candidateSpecies = database.species[candidateSpeciesId];
+        if (!candidateSpecies.questions.hasOwnProperty(questionId) || candidateSpecies.questions[questionId] == answerId) {
+            candidateSpeciesIds.push(candidateSpeciesId);
+        }
+    }
+    
     var oldSpeciesIds = currentSpeciesIds;
     currentSpeciesIds = [];
-    for (var i = 0; i < oldSpeciesIds.length;i++) {
-        var speciesId = oldSpeciesIds[i];
+    for (var speciesIndex = 0; speciesIndex < oldSpeciesIds.length; speciesIndex++) {
+        var speciesId = oldSpeciesIds[speciesIndex];
         var species = database.species[speciesId];
-        if (species.questions.hasOwnProperty(questionId) && species.questions[questionId] == answerId) {
+        if (!species.questions.hasOwnProperty(questionId)) {
+            candidateSpeciesIds.push(speciesId);
+        } else if (species.questions[questionId] == answerId) {
             currentSpeciesIds.push(speciesId);
         }
     }
@@ -193,6 +216,7 @@ function foundMatch() {
             var descriptionDiv = $('<div class="extract description"/>').html(species.description);
             speciesDiv.append(descriptionDiv);
         }
+        appendFactSection(speciesDiv);
         
         var askContainer = $('<div class="ask"/>');
         var askDiv = $('<div class="instructions"/>').text("Is this your bug?");
@@ -222,6 +246,13 @@ function foundMatch() {
 }
 
 function noMoreQuestions() {
+    if (candidateSpeciesIds.length > 0) {
+        currentSpeciesIds = candidateSpeciesIds;
+        candidateSpeciesIds = [];
+        nextQuestion();
+        return;
+    }
+    
     var mainDiv = $('#main');
     mainDiv.empty();
     var introMessage = database.question_ids.length == 0 ? "I don't know anything yet! Can you help me learn?" : "I've run out of questions! Can you help me learn?";
