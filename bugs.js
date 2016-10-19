@@ -270,7 +270,7 @@ function foundMatch() {
             if (newAnswers.count > 0 && species.id) {
                 var learnedNewDiv = $('<div class="instructions"/>').text("Thank you, I learned something new about " + speciesName + "!");
                 askContainer.append(learnedNewDiv);
-                addAnswers(species, newAnswers.answers);
+                addAnswers(species, newAnswers.answers, newAnswers.newAnswers);
             } else {
                 var startOverDiv = $('<div class="instructions"/>').text("Hooray!");
                 askContainer.append(startOverDiv);
@@ -293,14 +293,15 @@ function foundMatch() {
     }
 }
 
-function addAnswers(species, answers) {
+function addAnswers(species, answers, newAnswers) {
     $('body').addClass("loading");
     $.ajax({
         url: "answer.php",
         dataType: 'json',
         data: {
             species: species.id,
-            answers: answers
+            answers: answers,
+            new_answers: newAnswers
         }
     })
     .done(function(data) {
@@ -370,6 +371,7 @@ function appendFactSection(mainDiv, species)
             }
         }
     }
+    var newSpeciesNewAnswers = {};
     for (var newAnswerKey in newAnswers) {
         if (newAnswers.hasOwnProperty(newAnswerKey)) {
             if (species && species.questions && species.questions.hasOwnProperty(newAnswerKey)) {
@@ -379,7 +381,7 @@ function appendFactSection(mainDiv, species)
                     current: database.answers[species.questions[newAnswerKey]].answer})
             } else {
                 answers.push({answer: newAnswers[newAnswerKey], question: database.questions[newAnswerKey].question});
-                newSpeciesAnswers[newAnswerKey] = newAnswers[newAnswerKey];
+                newSpeciesNewAnswers[newAnswerKey] = newAnswers[newAnswerKey];
             }
         }
     }
@@ -396,7 +398,7 @@ function appendFactSection(mainDiv, species)
     }
     appendFactTable(mainDiv, 'known', knownAnswers);
     
-    return {answers: newSpeciesAnswers, count: answers.length};
+    return {answers: newSpeciesAnswers, newAnswers: newSpeciesNewAnswers, count: answers.length};
 }
 
 function appendFactTable(mainDiv, factType, answers) {

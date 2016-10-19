@@ -2,16 +2,26 @@
 if (!isset($_REQUEST['species'])) {
     die(json_encode(array('success' => false, 'message' => 'Missing species parameter')));
 }
-if (!isset($_REQUEST['answers'])) {
-    die(json_encode(array('success' => false, 'message' => 'Missing answers parameter')));
-}
 
 try {
     require_once('Database.class.php');
     $response = array('success' => true);
     $db = new Database();
     $speciesId = $_REQUEST['species'];
-    $answers = $_REQUEST['answers'];
+
+    $answers = array();
+    if (isset($_REQUEST['new_answers'])) {
+        $newQuestions = $_REQUEST['new_answers'];
+        foreach ($newQuestions as $newQuestion => $newAnswer) {
+            $questionId = $db->getQuestionId(strtolower(trim($newQuestion)));
+            $answerId = $db->getAnswerId(strtolower(trim($newAnswer)));
+            $answers[$questionId] = $answerId;
+        }
+    }
+    if (isset($_REQUEST['answers'])) {
+        $answers = $answers + $_REQUEST['answers'];
+    }
+    
     $db->addAnswers($speciesId, $answers);
     
     echo json_encode($response, true);
