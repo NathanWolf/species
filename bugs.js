@@ -255,13 +255,13 @@ function appendFactSection(mainDiv)
     for (var currentAnswerKey in currentAnswers) {
         if (currentAnswers.hasOwnProperty(currentAnswerKey)) {
             answerCount++;
-            answers[database.question_map[currentAnswerKey].question] = database.answers[currentAnswers[currentAnswerKey]].answer;
+            answers[database.questions[currentAnswerKey].question] = database.answers[currentAnswers[currentAnswerKey]].answer;
         }
     }
     for (var newAnswerKey in newAnswers) {
         if (newAnswers.hasOwnProperty(newAnswerKey)) {
             answerCount++;
-            answers[database.question_map[newAnswerKey].question] = newAnswers[newAnswerKey];
+            answers[database.questions[newAnswerKey].question] = newAnswers[newAnswerKey];
         }
     }
     if (answerCount > 0) {
