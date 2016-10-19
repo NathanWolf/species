@@ -77,7 +77,31 @@ function setDatabase(data) {
     currentSpeciesIds = database.species_ids.slice();
 }
 
+function pruneQuestions() {
+    var checkQuestionIds = currentQuestionsIds;
+    currentQuestionsIds = [];
+    for (var questionIndex = 0; questionIndex < checkQuestionIds.length; questionIndex++) {
+        var relevant = false;
+        var questionId = checkQuestionIds[questionIndex];
+        for (var speciesIndex = 0; !relevant && speciesIndex < currentSpeciesIds.length; speciesIndex++) {
+            if (database.species[currentSpeciesIds[speciesIndex]].questions.hasOwnProperty(questionId)) {
+                relevant = true;
+            }
+        }
+        for (var candidateIndex = 0; !relevant && candidateIndex < candidateSpeciesIds.length; candidateIndex++) {
+            if (database.species[candidateSpeciesIds[speciesIndex]].questions.hasOwnProperty(questionId)) {
+                relevant = true;
+            }
+        }
+        if (relevant) {
+            currentQuestionsIds.push(questionId);
+        }
+    }
+}
+
 function nextQuestion() {
+    pruneQuestions();
+    
     var mainDiv = $('#main');
     mainDiv.empty();
     if (currentQuestionsIds.length == 0 || currentSpeciesIds.length <= 1) {
