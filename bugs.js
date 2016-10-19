@@ -123,13 +123,13 @@ function nextQuestion() {
         return;
     } 
     
-    var questionSpan = $('<div class="question"/>').text(question.question);
+    var questionSpan = $('<div class="question"/>').text(firstUpper(question.question));
     mainDiv.append(questionSpan);
     var remainingAnswers = jQuery.extend({}, database.answers);
     for (var i = 0; i < question.answers.length; i++) {
         var answer = database.answers[question.answers[i]];
         delete remainingAnswers[question.answers[i]];
-        var answerSpan = $('<div class="answer"/>').text(answer.answer);
+        var answerSpan = $('<div class="answer"/>').text(firstUpper(answer.answer));
         answerSpan.click(function(answerId) {
             return function() { answerQuestion(question.id, answerId); };
         }(answer.id));
@@ -227,9 +227,9 @@ function foundMatch() {
     if (currentSpeciesIds.length > 0) {
         var species = database.species[currentSpeciesIds[0]];
         var speciesDiv = $('<div class="species"/>');
-        var speciesName = species.name;
+        var speciesName = firstUpper(species.name);
         if (species.common_name) {
-            speciesName = species.common_name + ' (' + speciesName + ')';
+            speciesName = firstUpper(species.common_name) + ' (' + speciesName + ')';
         }
         var nameDiv = $('<div class="name"/>').text(speciesName);
         speciesDiv.append(nameDiv);
@@ -407,12 +407,12 @@ function appendFactTable(mainDiv, factType, answers) {
         var factsTable = $('<table class="facts"/>');
         for (var answerIndex = 0; answerIndex < answers.length; answerIndex++) {
             var factsRow = $('<tr/>');
-            var questionCell = $('<td/>').text(answers[answerIndex].question);
-            var answerCell = $('<td/>').text(answers[answerIndex].answer);
+            var questionCell = $('<td/>').text(firstUpper(answers[answerIndex].question));
+            var answerCell = $('<td/>').text(firstUpper(answers[answerIndex].answer));
             factsRow.append(questionCell);
             factsRow.append(answerCell);
             if (answers[answerIndex].current) {
-                var currentCell = $('<td/>').text(answers[answerIndex].current);
+                var currentCell = $('<td/>').text(firstUpper(answers[answerIndex].current));
                 factsRow.append(currentCell);
             }
             factsTable.append(factsRow);
@@ -442,6 +442,11 @@ function numberToWord(number) {
         case 15: return 'Fifteen';
     }
     return number;
+}
+
+function firstUpper(text) {
+    if (text.length == 0) return text;
+    return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function nameBug() {
