@@ -28,6 +28,7 @@ CREATE TABLE `answer` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `answer` varchar(255) NOT NULL,
   `created` datetime NOT NULL,
+  `group_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `answer_UNIQUE` (`answer`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;

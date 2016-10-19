@@ -34,6 +34,22 @@ class Database
         }
         return $results;
     }
+
+    function indexMultiple(&$data, $id = 'id')
+    {
+        $results = array();
+        foreach ($data as &$record)
+        {
+            $recordId = $record[$id];
+            if (!$recordId) continue;
+            if (isset($results[$recordId])) {
+                $results[$recordId][] = $record;
+            } else {
+                $results[$recordId] = array($record);
+            }
+        }
+        return $results;
+    }
     
     public function getSpecies()
     {
@@ -64,7 +80,7 @@ class Database
     {
         if (is_null($this->answers)) {
             $db = $this->connect();
-            $fetchAnswers = $db->prepare('SELECT id, answer FROM answer');
+            $fetchAnswers = $db->prepare('SELECT id, answer, group_id FROM answer');
             $fetchAnswers->execute();
             $answers = $fetchAnswers->fetchAll($this->options);
             $this->answers = $this->index($answers);
@@ -84,14 +100,32 @@ class Database
 
             $questionAnswers = $db->prepare('SELECT question_id, answer_id FROM question_answer group by question_id, answer_id');
             $questionAnswers->execute();
-            $answers = $questionAnswers->fetchAll($this->options);
+            $questionAnswers = $questionAnswers->fetchAll($this->options);
             
-            foreach ($answers as $answer) {
-                $question = &$this->questions[$answer['question_id']];
+            $answers = $this->getAnswers();
+            $answerGroups = $this->indexMultiple($answers, 'group_id');
+            
+            foreach ($questionAnswers as &$questionAnswer) {
+                $question = &$this->questions[$questionAnswer['question_id']];
+                $answer = $answers[$questionAnswer['answer_id']];
                 if (!isset($question['answers'])) {
                     $question['answers'] = array();
                 }
-                array_push($question['answers'], $answer['answer_id']);
+                if ($answer['group_id']) {
+                    $answerGroup = $answerGroups[$answer['group_id']];
+                    foreach ($answerGroup as $groupAnswer) {
+                        $question['answers'][$groupAnswer['id']] = true;
+                    }
+                } else {
+                    $question['answers'][$answer['id']] = true;
+                }
+            }
+            foreach ($this->questions as &$question) {
+                if (isset($question['answers'])) {
+                    $question['answers'] = array_keys($question['answers']);
+                } else {
+                    $question['answers'] = array();
+                }
             }
         }
 
