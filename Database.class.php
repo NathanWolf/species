@@ -219,7 +219,9 @@ class Database
     public function addAnswers($speciesId, $answers) {
         $db = $this->connect();
         foreach ($answers as $questionId => $answerId) {
-            $sql = 'INSERT INTO question_answer (species_id, question_id, answer_id, created) VALUES (:species, :question, :answer, UTC_TIMESTAMP())';
+            $sql = 'INSERT INTO question_answer (species_id, question_id, answer_id, created, updated) VALUES (:species, :question, :answer, UTC_TIMESTAMP(), UTC_TIMESTAMP())' .
+                ' ON DUPLICATE KEY UPDATE answer_id = :answer, updated=UTC_TIMESTAMP()';
+
             $addAnswer = $db->prepare($sql);
             $addAnswer->bindParam('species', $speciesId);
             $addAnswer->bindParam('question', $questionId);

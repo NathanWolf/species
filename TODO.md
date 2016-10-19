@@ -1,5 +1,8 @@
 # TODO
 
+- Add back button
+- Fetch thumbnails
+- Require picking an image
 - When answering No, maybe ask why? Provide list of possible facts to check?
 
 - Add a way to enter a common name, aliases (multiple common names per species)
