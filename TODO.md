@@ -1,7 +1,5 @@
 # TODO
 
-- A question got added that had a number instead of the actual question?
-
 - When answering No, maybe ask why? Provide list of possible facts to check?
 
 - Add a way to enter a common name, aliases (multiple common names per species)

@@ -139,7 +139,7 @@ class Database
         // question id's and (potentially) new questions to store.
         // We make the assumption that a simple number is not a valid questions
         // (Though it could be a valid answer, which is why we have a separate list of new answers)
-        if (is_int($question)) return $question;
+        if (is_numeric($question)) return $question;
         
         $db = $this->connect();
         $db->beginTransaction();
