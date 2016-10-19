@@ -99,14 +99,17 @@ h1 {
     font-size: 2em;
 }
 
+.ask {
+    margin-bottom: 2em;
+}
+
 .ask button {
-    margin-top: 1em;
     font-size: 2em;
     margin-right: 2em;
 }
 
 .ask .instructions {
-    font-size: 3em;
+    font-size: 2em;
 }
 
 .image-picker .image {
@@ -177,6 +180,7 @@ h1 {
 table.facts {
     border-collapse: collapse;
     border: 1px solid #DDD;
+    margin-bottom: 1em;
 }
 
 table.facts td {

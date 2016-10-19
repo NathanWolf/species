@@ -111,6 +111,11 @@ function nextQuestion() {
         }(answer.id));
         mainDiv.append(answerSpan);
     }
+    
+    var notSureSpan = $('<div class="answer"/>').text('Not Sure');
+    notSureSpan.click(function() { skipQuestion(); });
+    mainDiv.append(notSureSpan);
+    
     var customAnswers = [];
     for (var key in remainingAnswers) {
         if (remainingAnswers.hasOwnProperty(key)) {
@@ -164,6 +169,10 @@ function newAnswer(questionId, answer) {
     nextQuestion();
 }
 
+function skipQuestion() {
+    nextQuestion();
+}
+
 function answerQuestion(questionId, answerId) {
     var oldCandidateIds = candidateSpeciesIds;
     candidateSpeciesIds = [];
@@ -208,21 +217,27 @@ function foundMatch() {
             imageDiv.append(imageLink);
             speciesDiv.append(imageDiv);
         }
+        var askContainer = $('<div class="ask"/>');
+        speciesDiv.append(askContainer);
+
+        var newAnswers = appendFactSection(speciesDiv, species);
+        
         if (species.wiki_url) {
-            var wikiDiv = $('<div class="wikiLink"/>').append($('<a href="' + species.wiki_url + '" target="_new"/>').text("Full Wikipedia Article"));
+            var wikiDiv = $('<div class="wikiLink"/>')
+                .append('Information from ')
+                .append($('<a href="' + species.wiki_url + '" target="_new"/>').text("Wikipedia"))
+                .append(':');
             speciesDiv.append(wikiDiv);
         }
         if (species.description) {
             var descriptionDiv = $('<div class="extract description"/>').html(species.description);
             speciesDiv.append(descriptionDiv);
         }
-        var newAnswers = appendFactSection(speciesDiv, species);
         
-        var askContainer = $('<div class="ask"/>');
         var askDiv = $('<div class="instructions"/>').text("Is this your bug?");
         askContainer.append(askDiv);
         if (newAnswers.count > 0) {
-            var sureDiv = $('<div class="sure"/>').text("If so, please make sure the new facts above are correct!");
+            var sureDiv = $('<div class="sure"/>').text("If so, please make sure the new facts below are correct!");
             askContainer.append(sureDiv);
         }
 
@@ -231,7 +246,6 @@ function foundMatch() {
             if (newAnswers.count > 0 && species.id) {
                 var learnedNewDiv = $('<div class="instructions"/>').text("Thank you, I learned something new about " + speciesName + "!");
                 askContainer.append(learnedNewDiv);
-                
                 addAnswers(species, newAnswers.answers);
             } else {
                 var startOverDiv = $('<div class="instructions"/>').text("Hooray!");
@@ -248,7 +262,6 @@ function foundMatch() {
         });
         askContainer.append(yesButton);
         askContainer.append(noButton);
-        speciesDiv.append(askContainer);
         
         $('#main').append(speciesDiv);
     } else {
@@ -315,70 +328,74 @@ function noMoreQuestions() {
 
 function appendFactSection(mainDiv, species)
 {
-    var answerCount = 0;
-    var answers = {};
+    var answers = [];
     var newSpeciesAnswers = {};
+    var disagreeAnswers = [];
     for (var currentAnswerKey in currentAnswers) {
-        if (currentAnswers.hasOwnProperty(currentAnswerKey) && (!species || !species.questions || !species.questions.hasOwnProperty(currentAnswerKey))) {
-            answerCount++;
-            answers[database.questions[currentAnswerKey].question] = database.answers[currentAnswers[currentAnswerKey]].answer;
-            newSpeciesAnswers[currentAnswerKey] = currentAnswers[currentAnswerKey];
+        if (currentAnswers.hasOwnProperty(currentAnswerKey)) {
+            if (species && species.questions && species.questions.hasOwnProperty(currentAnswerKey)) {
+                if (currentAnswers[currentAnswerKey] != species.questions[currentAnswerKey]) {
+                    disagreeAnswers.push({
+                        question: database.questions[currentAnswerKey].question, 
+                        answer: database.answers[currentAnswers[currentAnswerKey]].answer, 
+                        current: database.answers[species.questions[currentAnswerKey]].answer})
+                }
+            } else {
+                answers.push({answer: database.answers[currentAnswers[currentAnswerKey]].answer, question: database.questions[currentAnswerKey].question});
+                newSpeciesAnswers[currentAnswerKey] = currentAnswers[currentAnswerKey];
+            }
         }
     }
     for (var newAnswerKey in newAnswers) {
-        if (newAnswers.hasOwnProperty(newAnswerKey) && (!species || !species.questions || !species.questions.hasOwnProperty(newAnswerKey))) {
-            answerCount++;
-            answers[database.questions[newAnswerKey].question] = newAnswers[newAnswerKey];
-            newSpeciesAnswers[newAnswerKey] = newAnswers[newAnswerKey];
+        if (newAnswers.hasOwnProperty(newAnswerKey)) {
+            if (species && species.questions && species.questions.hasOwnProperty(newAnswerKey)) {
+                disagreeAnswers.push({
+                    question: database.questions[newAnswerKey].question,
+                    answer: newAnswers[newAnswerKey],
+                    current: database.answers[species.questions[newAnswerKey]].answer})
+            } else {
+                answers.push({answer: newAnswers[newAnswerKey], question: database.questions[newAnswerKey].question});
+                newSpeciesAnswers[newAnswerKey] = newAnswers[newAnswerKey];
+            }
         }
     }
+    appendFactTable(mainDiv, 'disagreeing', disagreeAnswers);
+    appendFactTable(mainDiv, 'new', answers);
+
+    var knownAnswers = [];
+    if (species && species.questions) {
+        for (var speciesQuestionId in species.questions) {
+            if (species.questions.hasOwnProperty(speciesQuestionId)) {
+                knownAnswers.push({question: database.questions[speciesQuestionId].question, answer: database.answers[species.questions[speciesQuestionId]].answer});
+            }
+        }
+    }
+    appendFactTable(mainDiv, 'known', knownAnswers);
+    
+    return {answers: newSpeciesAnswers, count: answers.length};
+}
+
+function appendFactTable(mainDiv, factType, answers) {
+    var answerCount = answers.length;
     if (answerCount > 0) {
         var plural = answerCount > 1 ? 's' : '';
-        var factsLabel = $('<div class="instructions"/>').text(numberToWord(answerCount) + ' new fact' + plural + ' about your bug:');
+        var factsLabel = $('<div class="instructions"/>').text(numberToWord(answerCount) + ' ' + factType + ' fact' + plural + ' about your bug:');
         var factsTable = $('<table class="facts"/>');
-        for (var question in answers) {
-            if (answers.hasOwnProperty(question)) {
-                var factsRow = $('<tr/>');
-                var questionCell = $('<td/>').text(question);
-                var answerCell = $('<td/>').text(answers[question]);
-                factsRow.append(questionCell);
-                factsRow.append(answerCell);
-                factsTable.append(factsRow);
+        for (var answerIndex = 0; answerIndex < answers.length; answerIndex++) {
+            var factsRow = $('<tr/>');
+            var questionCell = $('<td/>').text(answers[answerIndex].question);
+            var answerCell = $('<td/>').text(answers[answerIndex].answer);
+            factsRow.append(questionCell);
+            factsRow.append(answerCell);
+            if (answers[answerIndex].current) {
+                var currentCell = $('<td/>').text(answers[answerIndex].current);
+                factsRow.append(currentCell);
             }
+            factsTable.append(factsRow);
         }
         mainDiv.append(factsLabel);
         mainDiv.append(factsTable);
     }
-
-    var knownAnswerCount = 0;
-    var knownAnswers = {};
-    if (species && species.questions) {
-        for (var speciesQuestionId in species.questions) {
-            if (species.questions.hasOwnProperty(speciesQuestionId)) {
-                knownAnswerCount++;
-                knownAnswers[database.questions[speciesQuestionId].question] = database.answers[species.questions[speciesQuestionId]].answer;
-            }
-        }
-    }
-    if (knownAnswerCount > 0) {
-        var knownPlural = knownAnswerCount > 1 ? 's' : '';
-        var knownLabel = $('<div class="instructions"/>').text(numberToWord(knownAnswerCount) + ' known fact' + knownPlural + ' about your bug:');
-        var knownTable = $('<table class="facts"/>');
-        for (var knownQuestion in knownAnswers) {
-            if (knownAnswers.hasOwnProperty(knownQuestion)) {
-                var knownFactsRow = $('<tr/>');
-                var knownQuestionCell = $('<td/>').text(knownQuestion);
-                var knownAnswerCell = $('<td/>').text(knownAnswers[knownQuestion]);
-                knownFactsRow.append(knownQuestionCell);
-                knownFactsRow.append(knownAnswerCell);
-                knownTable.append(knownFactsRow);
-            }
-        }
-        mainDiv.append(knownLabel);
-        mainDiv.append(knownTable);
-    }
-    
-    return {answers: newSpeciesAnswers, count: answerCount};
 }
 
 function numberToWord(number) {
