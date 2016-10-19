@@ -216,16 +216,27 @@ function foundMatch() {
             var descriptionDiv = $('<div class="extract description"/>').html(species.description);
             speciesDiv.append(descriptionDiv);
         }
-        appendFactSection(speciesDiv);
+        var newAnswers = appendFactSection(speciesDiv, species);
         
         var askContainer = $('<div class="ask"/>');
         var askDiv = $('<div class="instructions"/>').text("Is this your bug?");
         askContainer.append(askDiv);
+        if (newAnswers.count > 0) {
+            var sureDiv = $('<div class="sure"/>').text("If so, please make sure the new facts above are correct!");
+            askContainer.append(sureDiv);
+        }
 
         var yesButton = $('<button type="button"/>').text("Yes").click(function() {
             askContainer.empty();
-            var startOverDiv = $('<div class="instructions"/>').text("Hooray!");
-            askContainer.append(startOverDiv);
+            if (newAnswers.count > 0 && species.id) {
+                var learnedNewDiv = $('<div class="instructions"/>').text("Thank you, I learned something new about " + speciesName + "!");
+                askContainer.append(learnedNewDiv);
+                
+                addAnswers(species, newAnswers.answers);
+            } else {
+                var startOverDiv = $('<div class="instructions"/>').text("Hooray!");
+                askContainer.append(startOverDiv);
+            }
             
             var startOverButton = $('<button type="button"/>').text("Start Over").click(function() {
                 start();
@@ -243,6 +254,29 @@ function foundMatch() {
     } else {
         noMoreQuestions();
     }
+}
+
+function addAnswers(species, answers) {
+    $('body').addClass("loading");
+    $.ajax({
+        url: "answer.php",
+        dataType: 'json',
+        data: {
+            species: species.id,
+            answers: answers
+        }
+    })
+    .done(function(data) {
+        if (!data || !data.success) {
+            showAlert("Error saving data, sorry! (" + data.message + ")");
+        }
+    })
+    .fail(function() {
+        showAlert("Error saving data, sorry!");
+    })
+    .always(function() {
+        $('body').removeClass("loading");
+    });
 }
 
 function noMoreQuestions() {
@@ -279,25 +313,28 @@ function noMoreQuestions() {
     appendFactSection(mainDiv);
 }
 
-function appendFactSection(mainDiv)
+function appendFactSection(mainDiv, species)
 {
     var answerCount = 0;
     var answers = {};
+    var newSpeciesAnswers = {};
     for (var currentAnswerKey in currentAnswers) {
-        if (currentAnswers.hasOwnProperty(currentAnswerKey)) {
+        if (currentAnswers.hasOwnProperty(currentAnswerKey) && (!species || !species.questions || !species.questions.hasOwnProperty(currentAnswerKey))) {
             answerCount++;
             answers[database.questions[currentAnswerKey].question] = database.answers[currentAnswers[currentAnswerKey]].answer;
+            newSpeciesAnswers[currentAnswerKey] = currentAnswers[currentAnswerKey];
         }
     }
     for (var newAnswerKey in newAnswers) {
-        if (newAnswers.hasOwnProperty(newAnswerKey)) {
+        if (newAnswers.hasOwnProperty(newAnswerKey) && (!species || !species.questions || !species.questions.hasOwnProperty(newAnswerKey))) {
             answerCount++;
             answers[database.questions[newAnswerKey].question] = newAnswers[newAnswerKey];
+            newSpeciesAnswers[newAnswerKey] = newAnswers[newAnswerKey];
         }
     }
     if (answerCount > 0) {
         var plural = answerCount > 1 ? 's' : '';
-        var factsLabel = $('<div class="instructions"/>').text(numberToWord(answerCount) + ' fact' + plural + ' about your bug:');
+        var factsLabel = $('<div class="instructions"/>').text(numberToWord(answerCount) + ' new fact' + plural + ' about your bug:');
         var factsTable = $('<table class="facts"/>');
         for (var question in answers) {
             if (answers.hasOwnProperty(question)) {
@@ -312,6 +349,36 @@ function appendFactSection(mainDiv)
         mainDiv.append(factsLabel);
         mainDiv.append(factsTable);
     }
+
+    var knownAnswerCount = 0;
+    var knownAnswers = {};
+    if (species && species.questions) {
+        for (var speciesQuestionId in species.questions) {
+            if (species.questions.hasOwnProperty(speciesQuestionId)) {
+                knownAnswerCount++;
+                knownAnswers[database.questions[speciesQuestionId].question] = database.answers[species.questions[speciesQuestionId]].answer;
+            }
+        }
+    }
+    if (knownAnswerCount > 0) {
+        var knownPlural = knownAnswerCount > 1 ? 's' : '';
+        var knownLabel = $('<div class="instructions"/>').text(numberToWord(knownAnswerCount) + ' known fact' + knownPlural + ' about your bug:');
+        var knownTable = $('<table class="facts"/>');
+        for (var knownQuestion in knownAnswers) {
+            if (knownAnswers.hasOwnProperty(knownQuestion)) {
+                var knownFactsRow = $('<tr/>');
+                var knownQuestionCell = $('<td/>').text(knownQuestion);
+                var knownAnswerCell = $('<td/>').text(knownAnswers[knownQuestion]);
+                knownFactsRow.append(knownQuestionCell);
+                knownFactsRow.append(knownAnswerCell);
+                knownTable.append(knownFactsRow);
+            }
+        }
+        mainDiv.append(knownLabel);
+        mainDiv.append(knownTable);
+    }
+    
+    return {answers: newSpeciesAnswers, count: answerCount};
 }
 
 function numberToWord(number) {

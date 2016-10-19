@@ -174,6 +174,15 @@ class Database
             $speciesId = $db->lastInsertId();
         }
         
+        $this->addAnswers($speciesId, $answers);
+        
+        $db->commit();
+        
+        return $speciesId;
+    }
+    
+    public function addAnswers($speciesId, $answers) {
+        $db = $this->connect();
         foreach ($answers as $questionId => $answerId) {
             $sql = 'INSERT INTO question_answer (species_id, question_id, answer_id, created) VALUES (:species, :question, :answer, UTC_TIMESTAMP())';
             $addAnswer = $db->prepare($sql);
@@ -182,9 +191,5 @@ class Database
             $addAnswer->bindParam('answer', $answerId);
             $addAnswer->execute();
         }
-        
-        $db->commit();
-        
-        return $speciesId;
     }
 }
