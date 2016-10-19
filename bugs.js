@@ -196,7 +196,14 @@ function foundMatch() {
         askContainer.append(askDiv);
 
         var yesButton = $('<button type="button"/>').text("Yes").click(function() {
-            alert("COOL!");
+            askContainer.empty();
+            var startOverDiv = $('<div class="instructions"/>').text("Hooray!");
+            askContainer.append(startOverDiv);
+            
+            var startOverButton = $('<button type="button"/>').text("Start Over").click(function() {
+                start();
+            });
+            askContainer.append(startOverButton);
         });
         var noButton = $('<button type="button"/>').text("No").click(function() {
             noMoreQuestions();
