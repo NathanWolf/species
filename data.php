@@ -11,6 +11,7 @@ try {
 
     $questionMap = $db->getQuestions();
     $response['questions'] = array_values($questionMap);
+    $response['question_map'] = $questionMap;
     $response['answers'] = $db->getAnswers();
     
     echo json_encode($response, true);

@@ -4,6 +4,9 @@ var database = null;
 // Tracking data
 var currentQuestions = [];
 var currentSpecies = [];
+var currentAnswers = {};
+var newAnswers = {};
+var currentBug = {};
 
 function start() {
     reset();
@@ -16,6 +19,8 @@ function reset() {
     currentQuestions = [];
     currentSpecies = [];
     currentBug = {};
+    currentAnswers = {};
+    newAnswers = {};
 }
 
 function fetchData(callback) {
@@ -73,7 +78,7 @@ function setDatabase(data) {
 function nextQuestion() {
     var mainDiv = $('#main');
     mainDiv.empty();
-    if (currentQuestions.length == 0) {
+    if (currentQuestions.length == 0 || currentSpecies.length <= 1) {
         foundMatch();
         return;
     }
@@ -84,6 +89,13 @@ function nextQuestion() {
     var questionIndex = Math.floor(Math.random() * currentQuestions.length);
     var question = currentQuestions[questionIndex];
     currentQuestions.splice(questionIndex, 1);
+    
+    // This should never happen, but you know.
+    if (!question.hasOwnProperty('answers')) {
+        nextQuestion();
+        return;
+    } 
+    
     var questionSpan = $('<div class="question"/>').text(question.question);
     mainDiv.append(questionSpan);
     var remainingAnswers = jQuery.extend({}, database.answers);
@@ -127,8 +139,16 @@ function newAnswer(questionId, answer) {
         showAlert('That answer is too long, please shorten it');
         return;
     }
-
-    noMoreQuestions();
+    var oldSpecies = currentSpecies;
+    currentSpecies = [];
+    for (var i = 0; i < oldSpecies.length;i++) {
+        var species = oldSpecies[i];
+        if (!species.questions.hasOwnProperty(questionId)) {
+            currentSpecies.push(species);
+        }
+    }
+    newAnswers[questionId] = answer;
+    nextQuestion();
 }
 
 function answerQuestion(questionId, answerId) {
@@ -140,6 +160,7 @@ function answerQuestion(questionId, answerId) {
             currentSpecies.push(species);
         }
     }
+    currentAnswers[questionId] = answerId;
     nextQuestion();
 }
 
@@ -178,7 +199,7 @@ function foundMatch() {
             alert("COOL!");
         });
         var noButton = $('<button type="button"/>').text("No").click(function() {
-            alert("AWE :(");
+            noMoreQuestions();
         });
         askContainer.append(yesButton);
         askContainer.append(noButton);
@@ -193,7 +214,8 @@ function foundMatch() {
 function noMoreQuestions() {
     var mainDiv = $('#main');
     mainDiv.empty();
-    var askDiv = $('<div class="unknown"/>').text("I've run out of questions! Can you help me learn?");
+    var introMessage = database.questions.length == 0 ? "I don't know anything yet! Can you help me learn?" : "I've run out of questions! Can you help me learn?";
+    var askDiv = $('<div class="unknown"/>').text(introMessage);
     mainDiv.append(askDiv);
 
     var nameDiv = $('<div class="newName"/>').text("What is the name of your bug?");
@@ -203,19 +225,77 @@ function noMoreQuestions() {
     mainDiv.append(nameInput);
     nameInput.keypress(function(e) {
         if (e.keyCode == $.ui.keyCode.ENTER) {
-            saveBug();
+            nameBug();
         }
     });
     
     var submitButton = $('<button type="button"/>').text("Name My Bug").click(function() {
-        saveBug(); 
+        nameBug(); 
     });
     var submitDiv = $('<div class="submit"/>');
     submitDiv.append(submitButton);
     mainDiv.append(submitDiv);
+    appendFactSection(mainDiv);
 }
 
-function saveBug() {
+function appendFactSection(mainDiv)
+{
+    var answerCount = 0;
+    var answers = {};
+    for (var currentAnswerKey in currentAnswers) {
+        if (currentAnswers.hasOwnProperty(currentAnswerKey)) {
+            answerCount++;
+            answers[database.question_map[currentAnswerKey].question] = database.answers[currentAnswers[currentAnswerKey]].answer;
+        }
+    }
+    for (var newAnswerKey in newAnswers) {
+        if (newAnswers.hasOwnProperty(newAnswerKey)) {
+            answerCount++;
+            answers[database.question_map[newAnswerKey].question] = newAnswers[newAnswerKey];
+        }
+    }
+    if (answerCount > 0) {
+        var plural = answerCount > 1 ? 's' : '';
+        var factsLabel = $('<div class="instructions"/>').text(numberToWord(answerCount) + ' fact' + plural + ' about your bug:');
+        var factsTable = $('<table class="facts"/>');
+        for (var question in answers) {
+            if (answers.hasOwnProperty(question)) {
+                var factsRow = $('<tr/>');
+                var questionCell = $('<td/>').text(question);
+                var answerCell = $('<td/>').text(answers[question]);
+                factsRow.append(questionCell);
+                factsRow.append(answerCell);
+                factsTable.append(factsRow);
+            }
+        }
+        mainDiv.append(factsLabel);
+        mainDiv.append(factsTable);
+    }
+}
+
+function numberToWord(number) {
+    switch (number) {
+        case 0: return 'Zero';
+        case 1: return 'One';
+        case 2: return 'Two';
+        case 3: return 'Three';
+        case 4: return 'Four';
+        case 5: return 'Five';
+        case 6: return 'Six';
+        case 7: return 'Seven';
+        case 8: return 'Eight';
+        case 9: return 'Nine';
+        case 10: return 'Ten';
+        case 11: return 'Eleven';
+        case 12: return 'Twelve';
+        case 13: return 'Thirteen';
+        case 14: return 'Fourteen';
+        case 15: return 'Fifteen';
+    }
+    return number;
+}
+
+function nameBug() {
     var nameInput = $('#name');
     var bugName = nameInput.val();
     if (bugName.length < 2) {
@@ -324,6 +404,8 @@ function showNewBug(title, wikiData) {
     
     answerDiv.append(answerLabel).append(answerInput);
     speciesDiv.append(answerDiv);
+
+    appendFactSection(speciesDiv);
     
     var submitButton = $('<button type="button"/>').text("Save My Bug").click(function() {
         saveNewBug(currentBug);
@@ -350,6 +432,7 @@ function saveNewBug(bug) {
         showAlert("Please enter a shorter answer");
         return;
     }
+    newAnswers[question] = answer;
     $('body').addClass("loading");
     $.ajax({
         url: "add.php",
@@ -359,8 +442,8 @@ function saveNewBug(bug) {
             name: bug.name,
             description: bug.description,
             common_name: bug.commonName,
-            question: question,
-            answer: answer,
+            new_answers: newAnswers,
+            answers: currentAnswers,
             image_url: bug.image,
             wiki_url: bug.wikiUrl
         }

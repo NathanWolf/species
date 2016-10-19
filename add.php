@@ -2,12 +2,6 @@
 if (!isset($_REQUEST['name'])) {
     die(json_encode(array('success' => false, 'message' => 'Missing name parameter')));
 }
-if (!isset($_REQUEST['question'])) {
-    die(json_encode(array('success' => false, 'message' => 'Missing question parameter')));
-}
-if (!isset($_REQUEST['answer'])) {
-    die(json_encode(array('success' => false, 'message' => 'Missing answer parameter')));
-}
 
 try {
     require_once('Database.class.php');
@@ -19,13 +13,21 @@ try {
     $description = isset($_REQUEST['description']) ? $_REQUEST['description'] : null;
     $imageUrl = isset($_REQUEST['image_url']) ? $_REQUEST['image_url'] : null;
     $wikiUrl = isset($_REQUEST['wiki_url']) ? $_REQUEST['wiki_url'] : null;
+
+    $answers = array();
+    if (isset($_REQUEST['new_answers'])) {
+        $newQuestions = $_REQUEST['new_answers'];
+        foreach ($newQuestions as $newQuestion => $newAnswer) {
+            $questionId = $db->getQuestionId($newQuestion);
+            $answerId = $db->getAnswerId($newAnswer);
+            $answers[$questionId] = $answerId;
+        }
+    }
+    if (isset($_REQUEST['answers'])) {
+        $answers = $answers + $_REQUEST['answers'];
+    }
     
-    $questionId = $db->getQuestionid($_REQUEST['question']);
-    $answerId = $db->getAnswerId($_REQUEST['answer']);
-    $questions = array();
-    $questions[$questionId] = $answerId;
-    
-    $id = $db->add($_REQUEST['name'], $commonName, $description, $imageUrl, $wikiUrl, $questions);
+    $id = $db->add($_REQUEST['name'], $commonName, $description, $imageUrl, $wikiUrl, $answers);
     $response['message'] = 'Added id ' . $id;
     echo json_encode($response, true);
 } catch (Exception $ex) {

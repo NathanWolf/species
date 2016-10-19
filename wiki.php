@@ -39,16 +39,6 @@ function getContent($key) {
     return $wikiContent;
 }
 
-/*
- "pages": {
-            "-1": {
-                "ns": 0,
-                "title": "Dragonfly (insect)",
-                "missing": ""
-            }
-        }
- */
-
 $response = array('success' => true, 'wiki' => $wikiKey);
 $images = array();
 $query = $wikiContent['query'];

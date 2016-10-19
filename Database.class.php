@@ -99,6 +99,12 @@ class Database
     
     public function getQuestionId($question)
     {
+        // This is a bit hacky, but lets us send a mixed list from the client containing
+        // question id's and (potentially) new questions to store.
+        // We make the assumption that a simple number is not a valid questions
+        // (Though it could be a valid answer, which is why we have a separate list of new answers)
+        if (is_int($question)) return $question;
+        
         $db = $this->connect();
         $db->beginTransaction();
 
@@ -145,7 +151,7 @@ class Database
         return $lastId;
     }
     
-    public function add($name, $commonName, $description, $imageUrl, $wikiUrl, $questions)
+    public function add($name, $commonName, $description, $imageUrl, $wikiUrl, $answers)
     {
         $db = $this->connect();
         $db->beginTransaction();
@@ -167,7 +173,7 @@ class Database
             $speciesId = $db->lastInsertId();
         }
         
-        foreach ($questions as $questionId => $answerId) {
+        foreach ($answers as $questionId => $answerId) {
             $sql = 'INSERT INTO question_answer (species_id, question_id, answer_id, created) VALUES (:species, :question, :answer, UTC_TIMESTAMP())';
             $addAnswer = $db->prepare($sql);
             $addAnswer->bindParam('species', $speciesId);
