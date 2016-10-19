@@ -450,19 +450,26 @@ function showNewBug(title, wikiData) {
     var questionDiv = $('<div class="newQuestion"/>');
     var questionLabel = $('<label for="newQuestion"/>').text("Question:");
     var questionInput = $('<input id="newQuestion" size="150" placeholder="(Type a Question)"/>');
+    var allQuestions = [];
+    for (var questionKey in database.questions) {
+        if (database.questions.hasOwnProperty(questionKey)) {
+            allQuestions.push(database.questions[questionKey].question);
+        }
+    }
+    questionInput.autocomplete({source: allQuestions});
     questionDiv.append(questionLabel).append(questionInput);
     speciesDiv.append(questionDiv);
+    
     var answerDiv = $('<div class="newAnswer"/>');
     var answerLabel = $('<label for="newAnswer"/>').text("Answer:");
     var answerInput = $('<input id="newAnswer" size="50" placeholder="(Type an Answer)"/>');
     var allAnswers = [];
-    for (var key in database.answers) {
-        if (database.answers.hasOwnProperty(key)) {
-            allAnswers.push(database.answers[key].answer);
+    for (var answerKey in database.answers) {
+        if (database.answers.hasOwnProperty(answerKey)) {
+            allAnswers.push(database.answers[answerKey].answer);
         }
     }
     answerInput.autocomplete({source: allAnswers});
-    
     answerDiv.append(answerLabel).append(answerInput);
     speciesDiv.append(answerDiv);
 
