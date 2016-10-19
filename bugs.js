@@ -508,42 +508,46 @@ function showNewBug(title, wikiData) {
     }
     speciesDiv.append(imageContainer);
     
-    var pickQuestionDiv = $('<div class="instructions"/>').text("Please type a question to help me identify this bug:");
-    speciesDiv.append(pickQuestionDiv);
-    if (currentBug.wikiUrl != null) {
-        var wikiDiv = $('<div class="wikiLink"/>').append($('<a href="' + currentBug.wikiUrl + '" target="_new"/>').text("Full Wikipedia Article"));
-        speciesDiv.append(wikiDiv);
-    }
-    var questionDiv = $('<div class="newQuestion"/>');
-    var questionLabel = $('<label for="newQuestion"/>').text("Question:");
-    var questionInput = $('<input id="newQuestion" size="150" placeholder="(Type a Question)"/>');
-    var allQuestions = [];
-    for (var questionKey in database.questions) {
-        if (database.questions.hasOwnProperty(questionKey)) {
-            allQuestions.push(database.questions[questionKey].question);
-        }
-    }
-    questionInput.autocomplete({source: allQuestions});
-    questionDiv.append(questionLabel).append(questionInput);
-    speciesDiv.append(questionDiv);
+    var isUnique = candidateSpeciesIds.length == 0;
     
-    var answerDiv = $('<div class="newAnswer"/>');
-    var answerLabel = $('<label for="newAnswer"/>').text("Answer:");
-    var answerInput = $('<input id="newAnswer" size="50" placeholder="(Type an Answer)"/>');
-    var allAnswers = [];
-    for (var answerKey in database.answers) {
-        if (database.answers.hasOwnProperty(answerKey)) {
-            allAnswers.push(database.answers[answerKey].answer);
+    if (!isUnique) {
+        var pickQuestionDiv = $('<div class="instructions"/>').text("Please type a question to help me identify this bug:");
+        speciesDiv.append(pickQuestionDiv);
+        if (currentBug.wikiUrl != null) {
+            var wikiDiv = $('<div class="wikiLink"/>').append($('<a href="' + currentBug.wikiUrl + '" target="_new"/>').text("Full Wikipedia Article"));
+            speciesDiv.append(wikiDiv);
         }
+        var questionDiv = $('<div class="newQuestion"/>');
+        var questionLabel = $('<label for="newQuestion"/>').text("Question:");
+        var questionInput = $('<input id="newQuestion" size="150" placeholder="(Type a Question)"/>');
+        var allQuestions = [];
+        for (var questionKey in database.questions) {
+            if (database.questions.hasOwnProperty(questionKey)) {
+                allQuestions.push(database.questions[questionKey].question);
+            }
+        }
+        questionInput.autocomplete({source: allQuestions});
+        questionDiv.append(questionLabel).append(questionInput);
+        speciesDiv.append(questionDiv);
+        
+        var answerDiv = $('<div class="newAnswer"/>');
+        var answerLabel = $('<label for="newAnswer"/>').text("Answer:");
+        var answerInput = $('<input id="newAnswer" size="50" placeholder="(Type an Answer)"/>');
+        var allAnswers = [];
+        for (var answerKey in database.answers) {
+            if (database.answers.hasOwnProperty(answerKey)) {
+                allAnswers.push(database.answers[answerKey].answer);
+            }
+        }
+        answerInput.autocomplete({source: allAnswers});
+        answerDiv.append(answerLabel).append(answerInput);
+        speciesDiv.append(answerDiv);
     }
-    answerInput.autocomplete({source: allAnswers});
-    answerDiv.append(answerLabel).append(answerInput);
-    speciesDiv.append(answerDiv);
 
     appendFactSection(speciesDiv);
     
     var submitButton = $('<button type="button"/>').text("Save My Bug").click(function() {
-        saveNewBug(currentBug);
+        saveNewBug(currentBug, isUnique);
     });
     var submitDiv = $('<div class="submitLarge"/>');
     submitDiv.append(submitButton);
@@ -552,22 +556,24 @@ function showNewBug(title, wikiData) {
     mainDiv.append(speciesDiv);
 }
 
-function saveNewBug(bug) {
-    var question = $('#newQuestion').val();
-    var answer = $('#newAnswer').val();
-    if (question.length < 2 || answer.length < 1) {
-        showAlert("Please enter a question and answer so I can identify this bug");
-        return;
+function saveNewBug(bug, isUnique) {
+    if (!isUnique) {
+        var question = $('#newQuestion').val();
+        var answer = $('#newAnswer').val();
+        if (question.length < 2 || answer.length < 1) {
+            showAlert("Please enter a question and answer so I can identify this bug");
+            return;
+        }
+        if (question.length > 255) {
+            showAlert("Please enter a shorter question");
+            return;
+        }
+        if (answer.length > 255) {
+            showAlert("Please enter a shorter answer");
+            return;
+        }
+        newAnswers[question] = answer;
     }
-    if (question.length > 255) {
-        showAlert("Please enter a shorter question");
-        return;
-    }
-    if (answer.length > 255) {
-        showAlert("Please enter a shorter answer");
-        return;
-    }
-    newAnswers[question] = answer;
     $('body').addClass("loading");
     $.ajax({
         url: "add.php",

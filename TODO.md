@@ -4,7 +4,6 @@
 - When answering No, maybe ask why? Provide list of possible facts to check?
 
 - Add a way to enter a common name
-- Adding a new question should be optional in most cases (check for duplicate species)
 - Bug facts should include facts already known
 
 - Filter out weird images, ogg files, etc
