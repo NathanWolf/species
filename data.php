@@ -10,7 +10,8 @@ try {
     $response['species'] = $speciesMap;
     $response['species_ids'] = array_keys($speciesMap);
     $speciesNameMap = $db->index($speciesMap, 'name');
-    $response['species_name_map'] = $speciesNameMap;
+    $speciesCommonNameMap = $db->index($speciesMap, 'common_name');
+    $response['species_name_map'] = $speciesNameMap + $speciesCommonNameMap;
 
     $questionMap = $db->getQuestions();
     $response['questions'] = $questionMap;

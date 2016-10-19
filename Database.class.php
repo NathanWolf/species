@@ -30,6 +30,7 @@ class Database
         foreach ($data as &$record)
         {
             $recordId = $record[$id];
+            if (!$recordId) continue;
             $results[$recordId] = $primaryIndex ? $record : $record['id'];
         }
         return $results;
