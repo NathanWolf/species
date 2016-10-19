@@ -7,7 +7,10 @@ try {
     $db = new Database();
 
     $speciesMap = $db->getSpecies();;
-    $response['species'] = array_values($speciesMap);
+    $response['species'] = $speciesMap;
+    $response['species_ids'] = array_keys($speciesMap);
+    $speciesNameMap = $db->index($speciesMap, 'name');
+    $response['species_name_map'] = $speciesNameMap;
 
     $questionMap = $db->getQuestions();
     $response['questions'] = array_values($questionMap);

@@ -25,11 +25,12 @@ class Database
 
     function index(&$data, $id = 'id')
     {
+        $primaryIndex = ($id === 'id');
         $results = array();
         foreach ($data as &$record)
         {
             $recordId = $record[$id];
-            $results[$recordId] = $record;
+            $results[$recordId] = $primaryIndex ? $record : $record['id'];
         }
         return $results;
     }

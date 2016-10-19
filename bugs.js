@@ -3,7 +3,7 @@ var database = null;
 
 // Tracking data
 var currentQuestions = [];
-var currentSpecies = [];
+var currentSpeciesIds = [];
 var currentAnswers = {};
 var newAnswers = {};
 var currentBug = {};
@@ -17,7 +17,7 @@ function reset() {
     $('#main').empty();
     database = null;
     currentQuestions = [];
-    currentSpecies = [];
+    currentSpeciesIds = [];
     currentBug = {};
     currentAnswers = {};
     newAnswers = {};
@@ -72,18 +72,19 @@ function showStartOver(message) {
 function setDatabase(data) {
     database = data;
     currentQuestions = database.questions.slice();
-    currentSpecies = database.species.slice();
+    currentSpeciesIds = database.species_ids.slice();
 }
 
 function nextQuestion() {
     var mainDiv = $('#main');
     mainDiv.empty();
-    if (currentQuestions.length == 0 || currentSpecies.length <= 1) {
+    if (currentQuestions.length == 0 || currentSpeciesIds.length <= 1) {
         foundMatch();
         return;
     }
     
-    var instructionsSpan = $('<div class="instructions large"/>').text("Let's answer some questions so I can learn about your bug! I may be able to guess what you have.");
+    var instructionsSpan = $('<div class="instructions large"/>')
+        .text("Let's answer some questions so I can learn about your bug! I may be able to guess what you have.");
     mainDiv.append(instructionsSpan);
     
     var questionIndex = Math.floor(Math.random() * currentQuestions.length);
@@ -139,12 +140,13 @@ function newAnswer(questionId, answer) {
         showAlert('That answer is too long, please shorten it');
         return;
     }
-    var oldSpecies = currentSpecies;
-    currentSpecies = [];
-    for (var i = 0; i < oldSpecies.length;i++) {
-        var species = oldSpecies[i];
+    var oldSpeciesIds = currentSpeciesIds;
+    currentSpeciesIds = [];
+    for (var i = 0; i < oldSpeciesIds.length;i++) {
+        var speciesId = oldSpeciesIds[i];
+        var species = database.species[speciesId];
         if (!species.questions.hasOwnProperty(questionId)) {
-            currentSpecies.push(species);
+            currentSpeciesIds.push(speciesId);
         }
     }
     newAnswers[questionId] = answer;
@@ -152,12 +154,13 @@ function newAnswer(questionId, answer) {
 }
 
 function answerQuestion(questionId, answerId) {
-    var oldSpecies = currentSpecies;
-    currentSpecies = [];
-    for (var i = 0; i < oldSpecies.length;i++) {
-        var species = oldSpecies[i];
+    var oldSpeciesIds = currentSpeciesIds;
+    currentSpeciesIds = [];
+    for (var i = 0; i < oldSpeciesIds.length;i++) {
+        var speciesId = oldSpeciesIds[i];
+        var species = database.species[speciesId];
         if (species.questions.hasOwnProperty(questionId) && species.questions[questionId] == answerId) {
-            currentSpecies.push(species);
+            currentSpeciesIds.push(speciesId);
         }
     }
     currentAnswers[questionId] = answerId;
@@ -165,8 +168,8 @@ function answerQuestion(questionId, answerId) {
 }
 
 function foundMatch() {
-    if (currentSpecies.length > 0) {
-        var species = currentSpecies[0];
+    if (currentSpeciesIds.length > 0) {
+        var species = database.species[currentSpeciesIds[0]];
         var speciesDiv = $('<div class="species"/>');
         var speciesName = species.name;
         if (species.common_name) {
@@ -358,6 +361,15 @@ function showNewBug(title, wikiData) {
         currentBug.commonName = title;
         nameText = nameText + " (" + wikiData['redirect'] + ")";
     }
+    
+    if (database.species_name_map.hasOwnProperty(currentBug.name)) {
+        mainDiv.append($('<div class="instructions"/>')
+            .text("I'm confused, I already know about " + currentBug.name + ", but your answers are different. I'm not sure what to do about this yet, but I will learn!"));
+        currentSpeciesIds = [database.species_name_map[currentBug.name]];
+        foundMatch();
+        return;
+    }
+    
     if (wikiData.hasOwnProperty('wiki')) {
         currentBug.wikiUrl = 'https://en.wikipedia.org/wiki/' + wikiData['wiki'];
     }
