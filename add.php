@@ -9,7 +9,7 @@ try {
     $response = array('success' => true);
     $db = new Database();
     
-    $commonName = isset($_REQUEST['common_name']) ? $_REQUEST['common_name'] : null;
+    $commonName = isset($_REQUEST['common_name']) ? trim($_REQUEST['common_name']) : null;
     $description = isset($_REQUEST['description']) ? $_REQUEST['description'] : null;
     $imageUrl = isset($_REQUEST['image_url']) ? $_REQUEST['image_url'] : null;
     $wikiUrl = isset($_REQUEST['wiki_url']) ? $_REQUEST['wiki_url'] : null;
@@ -18,8 +18,8 @@ try {
     if (isset($_REQUEST['new_answers'])) {
         $newQuestions = $_REQUEST['new_answers'];
         foreach ($newQuestions as $newQuestion => $newAnswer) {
-            $questionId = $db->getQuestionId($newQuestion);
-            $answerId = $db->getAnswerId($newAnswer);
+            $questionId = $db->getQuestionId(trim($newQuestion));
+            $answerId = $db->getAnswerId(trim($newAnswer));
             $answers[$questionId] = $answerId;
         }
     }
@@ -27,7 +27,7 @@ try {
         $answers = $answers + $_REQUEST['answers'];
     }
     
-    $id = $db->add($_REQUEST['name'], $commonName, $description, $imageUrl, $wikiUrl, $answers);
+    $id = $db->add(trim($_REQUEST['name']), $commonName, $description, $imageUrl, $wikiUrl, $answers);
     $response['message'] = 'Added id ' . $id;
     echo json_encode($response, true);
 } catch (Exception $ex) {

@@ -3,7 +3,7 @@ if (!isset($_REQUEST['title'])) {
     die(json_encode(array('success' => false, 'message' => 'Missing title parameter')));
 }
 
-$title = str_replace(' ', '_', $_REQUEST['title']);
+$title = str_replace(' ', '_', trim($_REQUEST['title']));
 // First check for inspect-specific version
 // It would be nice to abstract this, maybe by parsing disambiguation pages, but this ends up with zillions of unrelated results
 // in most cases.
