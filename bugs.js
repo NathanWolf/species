@@ -393,6 +393,10 @@ function showNewBug(title, wikiData) {
     
     var pickQuestionDiv = $('<div class="instructions"/>').text("Please type a question to help me identify this bug:");
     speciesDiv.append(pickQuestionDiv);
+    if (currentBug.wikiUrl != null) {
+        var wikiDiv = $('<div class="wikiLink"/>').append($('<a href="' + currentBug.wikiUrl + '" target="_new"/>').text("Full Wikipedia Article"));
+        speciesDiv.append(wikiDiv);
+    }
     var questionDiv = $('<div class="newQuestion"/>');
     var questionLabel = $('<label for="newQuestion"/>').text("Question:");
     var questionInput = $('<input id="newQuestion" size="150" placeholder="(Type a Question)"/>');
