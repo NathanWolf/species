@@ -89,7 +89,7 @@ function pruneQuestions() {
             }
         }
         for (var candidateIndex = 0; !relevant && candidateIndex < candidateSpeciesIds.length; candidateIndex++) {
-            if (database.species[candidateSpeciesIds[speciesIndex]].questions.hasOwnProperty(questionId)) {
+            if (database.species[candidateSpeciesIds[candidateIndex]].questions.hasOwnProperty(questionId)) {
                 relevant = true;
             }
         }
@@ -499,11 +499,11 @@ function showNewBug(title, wikiData) {
     var mainDiv = $('#main');
     mainDiv.empty();
     var speciesDiv = $('<div class="species"/>');
-    var nameText = title;
+    var nameText = firstUpper(title);
     if (wikiData.hasOwnProperty('redirect')) {
         currentBug.name = wikiData['redirect'];
         currentBug.commonName = title;
-        nameText = nameText + " (" + wikiData['redirect'] + ")";
+        nameText = nameText + " (" + firstUpper(wikiData['redirect']) + ")";
     }
     
     if (database.species_name_map.hasOwnProperty(currentBug.name)) {
