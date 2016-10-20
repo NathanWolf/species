@@ -133,13 +133,13 @@ h1 {
 }
 
 .image-picker .image img {
-    height: 200px;
-    width: auto;
+    width: 200px;
+    height: auto;
 }
 
 .thumbnail img {
-    height: 200px;
-    width: auto;
+    width: 200px;
+    height: auto;
 }
 
 .newName {

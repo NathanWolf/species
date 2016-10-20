@@ -543,7 +543,7 @@ function showNewBug(title, wikiData) {
     for (var i = 0; i < wikiData.images.length; i++) {
         var imageData = wikiData.images[i];
         var imageDiv = $('<div class="image"/>');
-        var imageUrl = $('<img src="' + imageData.url + '" title="' + imageData.title +'"/>');
+        var imageUrl = $('<img src="' + imageData.thumbnail + '" title="' + imageData.title +'"/>');
         imageDiv.append(imageUrl);
         imageContainer.append(imageDiv);
         imageDiv.click(function(url) {

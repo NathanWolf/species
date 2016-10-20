@@ -1,7 +1,7 @@
 # TODO
 
 - Add back button
-- Fetch thumbnails
+- Allow for multiple pictures per species?
 - Require picking an image
 - When answering No, maybe ask why? Provide list of possible facts to check?
 

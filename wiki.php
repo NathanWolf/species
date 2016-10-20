@@ -4,9 +4,9 @@ if (!isset($_REQUEST['title'])) {
 }
 
 $title = str_replace(' ', '_', trim($_REQUEST['title']));
-// First check for inspect-specific version
-// It would be nice to abstract this, maybe by parsing disambiguation pages, but this ends up with zillions of unrelated results
-// in most cases.
+// First check for insect-specific version
+// It would be nice to abstract this, maybe by parsing disambiguation pages, but this ends up
+// with zillions of unrelated results in most cases.
 $wikiKey = $title . '_(insect)';
 $wikiContent = getContent($wikiKey);
 if (!$wikiContent) {
@@ -66,23 +66,28 @@ foreach ($pages as $page) {
 
 $imageQuery = implode('|', $images);
 $images = array();
-$resolvedImages = file_get_contents('http://en.wikipedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url&titles=' . $imageQuery);
+$resolvedImages = file_get_contents('http://en.wikipedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url&iiurlwidth=200&titles=' . $imageQuery);
 if ($resolvedImages) $resolvedImages = json_decode($resolvedImages, true);
 if ($resolvedImages && isset($resolvedImages['query']) && isset($resolvedImages['query']['pages'])) {
     $imagePages = $resolvedImages['query']['pages'];
     foreach ($imagePages as $imagePage) {
         if (!isset($imagePage['title']) || !isset($imagePage['imageinfo'])) continue;
         $url = null;
+        $thumbUrl = null;
         foreach ($imagePage['imageinfo'] as $imageInfo) {
             if (isset($imageInfo['url'])) {
                 $url = $imageInfo['url'];
+            }
+            if (isset($imageInfo['thumburl'])) {
+                $thumbUrl = $imageInfo['thumburl'];
             }
             break;
         }
         if (!$url) continue;
         array_push($images, array(
             'title' => $imagePage['title'],
-            'url' => $url
+            'url' => $url,
+            'thumbnail' => $thumbUrl
         ));
     }
 } else {
