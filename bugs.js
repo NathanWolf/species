@@ -405,7 +405,7 @@ function appendFactTable(mainDiv, factType, answers) {
     var answerCount = answers.length;
     if (answerCount > 0) {
         var plural = answerCount > 1 ? 's' : '';
-        var factsLabel = $('<div class="instructions"/>').text(numberToWord(answerCount) + ' ' + factType + ' fact' + plural + ' about your bug:');
+        var factsLabel = $('<div class="instructions"/>').text(numberToWord(answerCount) + ' ' + factType + ' fact' + plural + ' about this bug:');
         var factsTable = $('<table class="facts"/>');
         for (var answerIndex = 0; answerIndex < answers.length; answerIndex++) {
             var factsRow = $('<tr/>');
@@ -466,6 +466,7 @@ function nameBug() {
 }
 
 function loadBug(title) {
+    if (checkForConflicts(title)) return;
     $('body').addClass("loading");
     $.ajax({
         url: "wiki.php",
@@ -489,6 +490,20 @@ function loadBug(title) {
     });
 }
 
+function checkForConflicts(speciesName) {
+    var speciesKey = speciesName.toLowerCase();
+    if (database.species_name_map.hasOwnProperty(speciesKey)) {
+        var mainDiv = $('#main');
+        mainDiv.empty();
+        mainDiv.append($('<div class="instructions"/>')
+            .text("I'm confused, I already know about " + speciesName + ", but your answers are different. I'm not sure what to do about this yet, but I will learn!"));
+        currentSpeciesIds = [database.species_name_map[speciesKey]];
+        foundMatch();
+        return true;
+    }
+    return false;
+}
+
 function showNewBug(title, wikiData) {
     var currentBug = {
         name: title,
@@ -508,13 +523,7 @@ function showNewBug(title, wikiData) {
         nameText = nameText + " (" + firstUpper(wikiData['redirect']) + ")";
     }
     
-    if (database.species_name_map.hasOwnProperty(currentBug.name)) {
-        mainDiv.append($('<div class="instructions"/>')
-            .text("I'm confused, I already know about " + currentBug.name + ", but your answers are different. I'm not sure what to do about this yet, but I will learn!"));
-        currentSpeciesIds = [database.species_name_map[currentBug.name]];
-        foundMatch();
-        return;
-    }
+    if (checkForConflicts(currentBug.name)) return;
     
     if (wikiData.hasOwnProperty('wiki')) {
         currentBug.wikiUrl = 'https://en.wikipedia.org/wiki/' + wikiData['wiki'];
