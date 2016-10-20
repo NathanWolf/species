@@ -7,7 +7,6 @@
 
 - Add a way to enter a common name, aliases (multiple common names per species)
 
-- Filter out weird images, ogg files, etc
 - Better handling of entering questions to differentiate
 - Better handling for case of trying to enter a new species 
   if it's already in the db and answers vary form what we've stored.

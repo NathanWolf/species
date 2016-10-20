@@ -66,7 +66,9 @@ foreach ($pages as $page) {
 
 $imageQuery = implode('|', $images);
 $images = array();
-$resolvedImages = file_get_contents('http://en.wikipedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url&iiurlwidth=200&titles=' . $imageQuery);
+$thumbnailSize = 200;
+$minSize = 100;
+$resolvedImages = file_get_contents('http://en.wikipedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url|mediatype|size&iiurlwidth=' . $thumbnailSize . '&titles=' . $imageQuery);
 if ($resolvedImages) $resolvedImages = json_decode($resolvedImages, true);
 if ($resolvedImages && isset($resolvedImages['query']) && isset($resolvedImages['query']['pages'])) {
     $imagePages = $resolvedImages['query']['pages'];
@@ -75,6 +77,9 @@ if ($resolvedImages && isset($resolvedImages['query']) && isset($resolvedImages[
         $url = null;
         $thumbUrl = null;
         foreach ($imagePage['imageinfo'] as $imageInfo) {
+            if ($imageInfo['mediatype'] !== 'BITMAP') continue;
+            if ($imageInfo['width'] < $minSize || $imageInfo['height'] < $minSize) continue;
+            
             if (isset($imageInfo['url'])) {
                 $url = $imageInfo['url'];
             }
