@@ -385,7 +385,7 @@ function appendFactSection(mainDiv, species)
             }
         }
     }
-    appendFactTable(mainDiv, 'disagreeing', disagreeAnswers);
+    appendFactTable(mainDiv, 'disagreeing', disagreeAnswers, 'disagree');
     appendFactTable(mainDiv, 'new', answers);
 
     var knownAnswers = [];
@@ -401,12 +401,15 @@ function appendFactSection(mainDiv, species)
     return {answers: newSpeciesAnswers, newAnswers: newSpeciesNewAnswers, count: answers.length};
 }
 
-function appendFactTable(mainDiv, factType, answers) {
+function appendFactTable(mainDiv, factType, answers, tableStyle) {
     var answerCount = answers.length;
     if (answerCount > 0) {
         var plural = answerCount > 1 ? 's' : '';
         var factsLabel = $('<div class="instructions"/>').text(numberToWord(answerCount) + ' ' + factType + ' fact' + plural + ' about this bug:');
         var factsTable = $('<table class="facts"/>');
+        if (tableStyle) {
+            factsTable.addClass(tableStyle);
+        }
         for (var answerIndex = 0; answerIndex < answers.length; answerIndex++) {
             var factsRow = $('<tr/>');
             var questionCell = $('<td/>').text(firstUpper(answers[answerIndex].question));
@@ -414,6 +417,14 @@ function appendFactTable(mainDiv, factType, answers) {
             factsRow.append(questionCell);
             factsRow.append(answerCell);
             if (answers[answerIndex].current) {
+                if (answerIndex == 0) {
+                    var titleRow = $('<tr/>');
+                    titleRow
+                        .append($('<th/>'))
+                        .append($('<th/>').text("You Said"))
+                        .append($('<th/>').text("I Think"));
+                    factsTable.append(titleRow);
+                }
                 var currentCell = $('<td/>').text(firstUpper(answers[answerIndex].current));
                 factsRow.append(currentCell);
             }
@@ -496,7 +507,10 @@ function checkForConflicts(speciesName) {
         var mainDiv = $('#main');
         mainDiv.empty();
         mainDiv.append($('<div class="instructions"/>')
-            .text("I'm confused, I already know about " + speciesName + ", but your answers are different. I'm not sure what to do about this yet, but I will learn!"));
+            .append("I'm confused, I already know about " + speciesName + ", but your answers are different.")
+            .append($('<br/>'))
+            .append("Please look over the differences below. Eventually I'll let you change my mind if my facts are wrong.")
+        );
         currentSpeciesIds = [database.species_name_map[speciesKey]];
         foundMatch();
         return true;

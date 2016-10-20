@@ -183,6 +183,10 @@ table.facts {
     margin-bottom: 1em;
 }
 
+table.facts.disagree {
+    background-color: #F88;
+}
+
 table.facts td {
     padding-left: 0.5em;
     padding-right: 0.5em;
