@@ -196,6 +196,14 @@ table.facts td:first-child {
     background-color: #EEFFFF;
 }
 
+.back {
+    margin-top: 2em;
+}
+
+.back button {
+    font-size: 1em;
+}
+
 /* Start by setting display:none to make this hidden.
    Then we position it in relation to the viewport window
    with position:fixed. Width, height, top and left speak

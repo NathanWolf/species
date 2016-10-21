@@ -4,10 +4,12 @@ var database = null;
 // Tracking data
 var currentQuestionsIds = [];
 var currentSpeciesIds = [];
+var candidateSpeciesIds = [];
 var currentAnswers = {};
 var newAnswers = {};
-var currentBug = {};
-var candidateSpeciesIds = [];
+
+// For back button functionality
+var historyStack = [];
 
 function start() {
     reset();
@@ -20,9 +22,37 @@ function reset() {
     currentQuestionsIds = [];
     currentSpeciesIds = [];
     candidateSpeciesIds = [];
-    currentBug = {};
     currentAnswers = {};
     newAnswers = {};
+    historyStack = [];
+}
+
+function pushState() {
+    var state = {};
+    state.currentQuestionsIds = currentQuestionsIds.slice();
+    state.currentSpeciesIds = currentSpeciesIds.slice();
+    state.candidateSpeciesIds = candidateSpeciesIds.slice();
+    state.currentAnswers = $.extend({}, currentAnswers);
+    state.newAnswers = $.extend({}, newAnswers);
+    historyStack.push(state);
+}
+
+function popState() {
+    // The most recent state on the stack is the one for our current
+    // location, so we want to discard that one and use the previous one.
+    // This feels inelegant, but I'm not sure how to do it better.
+    historyStack.pop();
+    
+    var state = historyStack.pop();
+    currentQuestionsIds = state.currentQuestionsIds;
+    currentSpeciesIds = state.currentSpeciesIds;
+    candidateSpeciesIds = state.candidateSpeciesIds;
+    currentAnswers = state.currentAnswers;
+    newAnswers = state.newAnswers;
+}
+
+function canGoBack() {
+    return historyStack.length > 1;
 }
 
 function fetchData(callback) {
@@ -71,9 +101,20 @@ function showStartOver(message) {
     mainDiv.append(retryDiv);
 }
 
+function shuffle(a) {
+    var j, x, i;
+    for (i = a.length; i; i--) {
+        j = Math.floor(Math.random() * i);
+        x = a[i - 1];
+        a[i - 1] = a[j];
+        a[j] = x;
+    }
+    return a;
+}
+
 function setDatabase(data) {
     database = data;
-    currentQuestionsIds = database.question_ids.slice();
+    currentQuestionsIds = shuffle(database.question_ids.slice());
     currentSpeciesIds = database.species_ids.slice();
 }
 
@@ -108,14 +149,15 @@ function nextQuestion() {
         foundMatch();
         return;
     }
-    
-    var instructionsSpan = $('<div class="instructions large"/>')
-        .text("Let's answer some questions so I can learn about your bug! I may be able to guess what you have.");
-    mainDiv.append(instructionsSpan);
-    
-    var questionIndex = Math.floor(Math.random() * currentQuestionsIds.length);
-    var question = database.questions[currentQuestionsIds[questionIndex]];
-    currentQuestionsIds.splice(questionIndex, 1);
+
+    pushState();
+    if (!canGoBack()) {
+        var instructionsSpan = $('<div class="instructions large"/>')
+            .text("Let's answer some questions so I can learn about your bug! I may be able to guess what you have.");
+        mainDiv.append(instructionsSpan);
+    }
+
+    var question = database.questions[currentQuestionsIds.pop()];
     
     // This should never happen, but you know.
     if (!question.hasOwnProperty('answers')) {
@@ -160,6 +202,20 @@ function nextQuestion() {
     customAnswerSpan.append(answerInput);
     customAnswerSpan.append(answerButton);
     mainDiv.append(customAnswerSpan);
+    
+    addBackButton(mainDiv);
+}
+
+function addBackButton(mainDiv) {
+    if (canGoBack()) {
+        var goBackSpan = $('<div class="back"/>');
+        var goBackButton = $('<button type="button"/>').text("< Go Back").click(function() {
+            popState();
+            nextQuestion();
+        });
+        goBackSpan.append(goBackButton);
+        mainDiv.append(goBackSpan);
+    }
 }
 
 function newAnswer(questionId, answer) {
@@ -225,6 +281,7 @@ function answerQuestion(questionId, answerId) {
 
 function foundMatch() {
     if (currentSpeciesIds.length > 0) {
+        pushState();
         var species = database.species[currentSpeciesIds[0]];
         var speciesDiv = $('<div class="species"/>');
         var speciesName = firstUpper(species.name);
@@ -287,7 +344,9 @@ function foundMatch() {
         askContainer.append(yesButton);
         askContainer.append(noButton);
         
-        $('#main').append(speciesDiv);
+        var mainDiv = $('#main');
+        mainDiv.append(speciesDiv);
+        addBackButton(mainDiv);
     } else {
         noMoreQuestions();
     }
@@ -325,6 +384,7 @@ function noMoreQuestions() {
         return;
     }
     
+    pushState();
     var mainDiv = $('#main');
     mainDiv.empty();
     var introMessage = database.question_ids.length == 0 ? "I don't know anything yet! Can you help me learn?" : "I've run out of questions! Can you help me learn?";
@@ -349,6 +409,7 @@ function noMoreQuestions() {
     submitDiv.append(submitButton);
     mainDiv.append(submitDiv);
     appendFactSection(mainDiv);
+    addBackButton(mainDiv);
 }
 
 function appendFactSection(mainDiv, species)
